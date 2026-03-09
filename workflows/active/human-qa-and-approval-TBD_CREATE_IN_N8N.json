@@ -1,0 +1,241 @@
+{
+  "name": "human-qa-and-approval",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "human-qa-and-approval",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e16c05f7-c0b7-4cb3-a8d5-e26f244b12bd",
+      "name": "Human QA Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1080,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const qa = ($json.qa_status || 'APPROVAL_PENDING').toUpperCase();\nconst founder = ($json.founder_status || 'PENDING').toUpperCase();\n\nreturn [{\n  json: {\n    ...$json,\n    qa_status: qa,\n    founder_status: founder,\n    status: qa === 'REVISION_REQUESTED' ? 'REVISION_REQUESTED' : (qa === 'APPROVED' ? 'APPROVAL_PENDING' : 'QA_IN_REVIEW')\n  }\n}];"
+      },
+      "id": "526ba969-e71f-4276-8d89-b267c0054380",
+      "name": "Normalize QA Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.qa_status}}",
+              "operation": "equal",
+              "value2": "REVISION_REQUESTED"
+            }
+          ]
+        }
+      },
+      "id": "ddf4c55f-6f4f-439a-a9b6-3d6b89f587ec",
+      "name": "QA Needs Revision?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || '').replace(/\\/$/, '') + '/webhook/proposal-composer' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "39f0a6cb-f8ee-488a-a788-a791f5f96eca",
+      "name": "Send Back to Composer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -380,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.founder_status}}",
+              "operation": "equal",
+              "value2": "APPROVED"
+            }
+          ]
+        }
+      },
+      "id": "c2c16712-09a7-4f9e-96d8-c705ca5c55dc",
+      "name": "Founder Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || '').replace(/\\/$/, '') + '/webhook/gmail-send-and-followup' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "67a9f7d8-eb26-49f3-a9de-cd0af77f9adb",
+      "name": "Call gmail-send-and-followup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Google Sheets QA_Reviews upsert + internal Gmail notifications.\n// For now returns pending review state.\nreturn items;"
+      },
+      "id": "b82ec21e-99ac-43c1-a973-d9e590a04f7b",
+      "name": "QA Review Logging + Notify (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        440
+      ]
+    }
+  ],
+  "connections": {
+    "Human QA Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize QA Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize QA Status": {
+      "main": [
+        [
+          {
+            "node": "QA Needs Revision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Needs Revision?": {
+      "main": [
+        [
+          {
+            "node": "Send Back to Composer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Founder Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founder Approved?": {
+      "main": [
+        [
+          {
+            "node": "Call gmail-send-and-followup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "QA Review Logging + Notify (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00000000-0000-0000-0000-000000000005",
+  "meta": null,
+  "id": "TBD_CREATE_IN_N8N",
+  "tags": [],
+  "pinData": {
+    "Human QA Webhook": [
+      {
+        "json": {
+          "case_id": "case-call-2026-03-05-glossier",
+          "client_name": "Glossier",
+          "client_email": "emily@glossier.com",
+          "status": "DRAFT_READY",
+          "qa_status": "APPROVED",
+          "founder_status": "APPROVED",
+          "reviewer": "qa@pinnaclemedia.example",
+          "review_notes": "Pinned fixture approval for first-pass QA.",
+          "proposal_section_draft": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "sections": [
+              {
+                "title": "Executive Summary",
+                "content": "Glossier has strong brand demand and community trust, but paid social execution has been inconsistent. This proposal addresses that gap with a profitable 90-day scaling plan from roughly $180K toward $400K monthly revenue."
+              },
+              {
+                "title": "Scope of Services",
+                "content": "Paid social strategy and media buying, creative testing framework, CRO coordination, and retention alignment across email/SMS with weekly reporting."
+              },
+              {
+                "title": "Strategy and Approach",
+                "content": "Execute trust-first Meta creative, rapid iteration cycles, and funnel optimization while preserving brand voice. Prioritize profitable scaling and tighter acquisition-to-retention handoff."
+              },
+              {
+                "title": "Budget and Pricing",
+                "content": "Start with approximately $20K paid media test budget and phase service scope by milestone performance, with scale contingent on CAC and ROAS guardrails."
+              },
+              {
+                "title": "Terms and Conditions",
+                "content": "Work begins after written approval. Founder signs off on final strategy direction, communication cadence is weekly, and revision loops remain tied to the same case_id for auditability."
+              }
+            ],
+            "draft_body_markdown": "Marketing Proposal for Glossier\n\n## Executive Summary\nGlossier has strong brand demand and community trust, but paid social execution has been inconsistent. This proposal addresses that gap with a profitable 90-day scaling plan from roughly $180K toward $400K monthly revenue.\n\n## Scope of Services\nPaid social strategy and media buying, creative testing framework, CRO coordination, and retention alignment across email/SMS with weekly reporting.\n\n## Strategy and Approach\nExecute trust-first Meta creative, rapid iteration cycles, and funnel optimization while preserving brand voice. Prioritize profitable scaling and tighter acquisition-to-retention handoff.\n\n## Budget and Pricing\nStart with approximately $20K paid media test budget and phase service scope by milestone performance, with scale contingent on CAC and ROAS guardrails.\n\n## Terms and Conditions\nWork begins after written approval. Founder signs off on final strategy direction, communication cadence is weekly, and revision loops remain tied to the same case_id for auditability.\n"
+          },
+          "gmail_draft_payload": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "subject": "Marketing Proposal for Glossier",
+            "body": "Marketing Proposal for Glossier\n\n## Executive Summary\nGlossier has strong brand demand and community trust, but paid social execution has been inconsistent. This proposal addresses that gap with a profitable 90-day scaling plan from roughly $180K toward $400K monthly revenue.\n\n## Scope of Services\nPaid social strategy and media buying, creative testing framework, CRO coordination, and retention alignment across email/SMS with weekly reporting.\n\n## Strategy and Approach\nExecute trust-first Meta creative, rapid iteration cycles, and funnel optimization while preserving brand voice. Prioritize profitable scaling and tighter acquisition-to-retention handoff.\n\n## Budget and Pricing\nStart with approximately $20K paid media test budget and phase service scope by milestone performance, with scale contingent on CAC and ROAS guardrails.\n\n## Terms and Conditions\nWork begins after written approval. Founder signs off on final strategy direction, communication cadence is weekly, and revision loops remain tied to the same case_id for auditability.\n",
+            "gmail_draft_id": "draft-case-call-2026-03-05-glossier"
+          }
+        }
+      }
+    ]
+  }
+}

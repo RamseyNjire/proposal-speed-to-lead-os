@@ -1,0 +1,971 @@
+{
+  "updatedAt": "2026-03-07T12:25:26.710Z",
+  "createdAt": "2026-03-07T10:32:54.135Z",
+  "id": "H0x0TpT3WfPZxELo",
+  "name": "transcript-intake",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "transcript-intake",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "f7ce3d6d-297f-4c6b-bf8e-6164e0ce2ec2",
+      "name": "Transcript Ingest Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        272
+      ],
+      "webhookId": "b98ea6a2-5a8d-4155-9d13-b80d8e966a46"
+    },
+    {
+      "parameters": {
+        "jsCode": "const required = ['transcript_id','captured_at_utc','client_name','client_email','website_url','transcript_text'];\nfor (const field of required) {\n  if (!$json[field] || String($json[field]).trim() === '') {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\nconst safeId = String($json.transcript_id).replace(/[^a-zA-Z0-9_-]/g, '-');\nconst caseId = `case-${safeId}`;\nconst ingestedAt = new Date();\nconst draftDue = new Date(ingestedAt.getTime() + 4 * 60 * 60 * 1000).toISOString();\n\nreturn [{\n  json: {\n    ...$json,\n    case_id: caseId,\n    status: 'NEW',\n    ingested_at_utc: ingestedAt.toISOString(),\n    draft_due_at_utc: draftDue,\n    qa_reviewer_email: 'ramsey@intellom8.com',\n    founder_approver_email: 'ramsey@intellom8.com'\n  }\n}];"
+      },
+      "id": "9f3b59fd-b77b-43ea-a815-7e8cbeb95571",
+      "name": "Validate + Case ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1794078886,
+          "mode": "list",
+          "cachedResultName": "Cases",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=1794078886"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "transcript_id": "={{ $json.transcript_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "website_url": "={{ $json.website_url }}",
+            "status": "={{ $json.status }}",
+            "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+            "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+            "draft_ready_at_utc": "={{ $json.draft_ready_at_utc || \"\" }}",
+            "approved_at_utc": "={{ $json.approved_at_utc || \"\" }}",
+            "sent_at_utc": "={{ $json.sent_at_utc || \"\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript_id",
+              "displayName": "transcript_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ingested_at_utc",
+              "displayName": "ingested_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "draft_due_at_utc",
+              "displayName": "draft_due_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "draft_ready_at_utc",
+              "displayName": "draft_ready_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "approved_at_utc",
+              "displayName": "approved_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_at_utc",
+              "displayName": "sent_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b80a0e32-f13f-4798-be2d-6a6e2f4f8055",
+      "name": "Google Sheets Cases Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -416,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "56QURVglZdEYUyxQ",
+          "mode": "list",
+          "cachedResultName": "insight-extractor",
+          "cachedResultUrl": "/workflow/56QURVglZdEYUyxQ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source": "={{ $json.source }}",
+            "transcript_id": "={{ $json.transcript_id }}",
+            "captured_at_utc": "={{ $json.captured_at_utc }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "website_url": "={{ $json.website_url }}",
+            "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+            "founder_approver_email": "={{ $json.founder_approver_email }}",
+            "transcript_text": "={{ $json.transcript_text }}",
+            "case_id": "={{ $json.case_id }}",
+            "status": "={{ $json.status }}",
+            "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+            "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+            "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+            "approved_at_utc": "={{ $json.approved_at_utc }}",
+            "sent_at_utc": "={{ $json.sent_at_utc }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "transcript_id",
+              "displayName": "transcript_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "captured_at_utc",
+              "displayName": "captured_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_reviewer_email",
+              "displayName": "qa_reviewer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_approver_email",
+              "displayName": "founder_approver_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "transcript_text",
+              "displayName": "transcript_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "ingested_at_utc",
+              "displayName": "ingested_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_due_at_utc",
+              "displayName": "draft_due_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_ready_at_utc",
+              "displayName": "draft_ready_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approved_at_utc",
+              "displayName": "approved_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sent_at_utc",
+              "displayName": "sent_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "7f111205-bcb3-4c62-b9ff-c89e9f9bcf2f",
+      "name": "Call insight-extractor",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        272
+      ]
+    }
+  ],
+  "connections": {
+    "Transcript Ingest Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate + Case ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate + Case ID": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Cases Append",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call insight-extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "Transcript Ingest Webhook": [
+      {
+        "json": {
+          "source": "manual",
+          "transcript_id": "call-2026-03-07-allbirds-automation",
+          "captured_at_utc": "2026-03-07T11:30:00Z",
+          "client_name": "Allbirds",
+          "client_email": "growth@allbirds.com",
+          "website_url": "https://www.allbirds.com",
+          "qa_reviewer_email": "ramsey@intellom8.com",
+          "founder_approver_email": "ramsey@intellom8.com",
+          "transcript_text": "DISCOVERY CALL TRANSCRIPT\nAgency: Intellom8 Automation Services\nClient: Allbirds\nDate: March 7, 2026\n\nPARTICIPANTS\nRamsey Njire - Founder, Intellom8\nJordan Kim - VP Growth, Allbirds\nMaya Chen - Ecommerce Operations Lead, Allbirds\n\nRamsey: Give me the current state of operations and where automation gaps are hurting revenue.\nJordan: We are doing about $3.2M/month online, but paid CAC is up 34% YoY and reporting is too slow to react.\nMaya: Our weekly performance report takes around 8 hours manually across Shopify, Klaviyo, GA4, Meta Ads, and Google Ads.\nRamsey: What does that delay cause in practice?\nJordan: We miss optimization windows. We often change campaigns 3-4 days late because data is fragmented.\nMaya: Our abandoned checkout flow is also delayed. Some users get recovery emails 10-12 hours later instead of within 30 minutes.\nRamsey: Any customer support workflow issues?\nMaya: Yes. About 3,400 tickets per week. Routing is rule-based but still manual in edge cases. First response is averaging 18 hours.\nJordan: We need faster triage so VIP and shipping-delay tickets escalate automatically.\n\nRamsey: What systems are in scope if we build this in phases?\nMaya: Shopify, Klaviyo, Gorgias, GA4, Meta Ads, Google Ads, Slack, and Google Sheets.\nJordan: We also want a single daily executive summary emailed at 8:00 AM with spend, CAC, ROAS, conversion rate, and revenue.\nRamsey: What are your 90-day targets?\nJordan: 1) Cut reporting time from 8 hours/week to under 1 hour/week.\nJordan: 2) Increase abandoned-cart recovery revenue by at least 15%.\nJordan: 3) Reduce support first-response time from 18 hours to under 6 hours.\nJordan: 4) Improve paid efficiency enough to lower blended CAC by 10%.\n\nRamsey: What constraints should we plan around?\nMaya: No major re-platforming this quarter. We need low-risk implementation and clear rollback for every automation.\nJordan: Brand voice and customer trust are non-negotiable in any lifecycle messaging.\nRamsey: Who approves the proposal?\nJordan: I own evaluation, Maya validates workflow design, and CFO signs final budget.\nRamsey: Budget range?\nJordan: We can do a one-time build plus monthly optimization if ROI is visible in the first 6 weeks.\n\nRamsey: Great. We will propose a phased automation plan: reporting automation, lifecycle trigger optimization, and support routing with SLA alerts.\nJordan: Perfect. Send a detailed proposal with timeline, implementation approach, and pricing options by Tuesday."
+        }
+      }
+    ]
+  },
+  "versionId": "ace94ecf-12e5-4009-a9e0-548181237763",
+  "activeVersionId": "ace94ecf-12e5-4009-a9e0-548181237763",
+  "versionCounter": 51,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:54.135Z",
+      "createdAt": "2026-03-07T10:32:54.135Z",
+      "role": "workflow:owner",
+      "workflowId": "H0x0TpT3WfPZxELo",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T12:25:26.713Z",
+    "createdAt": "2026-03-07T12:25:26.713Z",
+    "versionId": "ace94ecf-12e5-4009-a9e0-548181237763",
+    "workflowId": "H0x0TpT3WfPZxELo",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "transcript-intake",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "f7ce3d6d-297f-4c6b-bf8e-6164e0ce2ec2",
+        "name": "Transcript Ingest Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -896,
+          272
+        ],
+        "webhookId": "b98ea6a2-5a8d-4155-9d13-b80d8e966a46"
+      },
+      {
+        "parameters": {
+          "jsCode": "const required = ['transcript_id','captured_at_utc','client_name','client_email','website_url','transcript_text'];\nfor (const field of required) {\n  if (!$json[field] || String($json[field]).trim() === '') {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\nconst safeId = String($json.transcript_id).replace(/[^a-zA-Z0-9_-]/g, '-');\nconst caseId = `case-${safeId}`;\nconst ingestedAt = new Date();\nconst draftDue = new Date(ingestedAt.getTime() + 4 * 60 * 60 * 1000).toISOString();\n\nreturn [{\n  json: {\n    ...$json,\n    case_id: caseId,\n    status: 'NEW',\n    ingested_at_utc: ingestedAt.toISOString(),\n    draft_due_at_utc: draftDue,\n    qa_reviewer_email: 'ramsey@intellom8.com',\n    founder_approver_email: 'ramsey@intellom8.com'\n  }\n}];"
+        },
+        "id": "9f3b59fd-b77b-43ea-a815-7e8cbeb95571",
+        "name": "Validate + Case ID",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -656,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1794078886,
+            "mode": "list",
+            "cachedResultName": "Cases",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=1794078886"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "transcript_id": "={{ $json.transcript_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "website_url": "={{ $json.website_url }}",
+              "status": "={{ $json.status }}",
+              "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+              "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+              "draft_ready_at_utc": "={{ $json.draft_ready_at_utc || \"\" }}",
+              "approved_at_utc": "={{ $json.approved_at_utc || \"\" }}",
+              "sent_at_utc": "={{ $json.sent_at_utc || \"\" }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "transcript_id",
+                "displayName": "transcript_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "website_url",
+                "displayName": "website_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "ingested_at_utc",
+                "displayName": "ingested_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "draft_due_at_utc",
+                "displayName": "draft_due_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "draft_ready_at_utc",
+                "displayName": "draft_ready_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "approved_at_utc",
+                "displayName": "approved_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "sent_at_utc",
+                "displayName": "sent_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "b80a0e32-f13f-4798-be2d-6a6e2f4f8055",
+        "name": "Google Sheets Cases Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -416,
+          272
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "56QURVglZdEYUyxQ",
+            "mode": "list",
+            "cachedResultName": "insight-extractor",
+            "cachedResultUrl": "/workflow/56QURVglZdEYUyxQ"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "source": "={{ $json.source }}",
+              "transcript_id": "={{ $json.transcript_id }}",
+              "captured_at_utc": "={{ $json.captured_at_utc }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "website_url": "={{ $json.website_url }}",
+              "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+              "founder_approver_email": "={{ $json.founder_approver_email }}",
+              "transcript_text": "={{ $json.transcript_text }}",
+              "case_id": "={{ $json.case_id }}",
+              "status": "={{ $json.status }}",
+              "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+              "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+              "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+              "approved_at_utc": "={{ $json.approved_at_utc }}",
+              "sent_at_utc": "={{ $json.sent_at_utc }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "source",
+                "displayName": "source",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "transcript_id",
+                "displayName": "transcript_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "captured_at_utc",
+                "displayName": "captured_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "website_url",
+                "displayName": "website_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_reviewer_email",
+                "displayName": "qa_reviewer_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_approver_email",
+                "displayName": "founder_approver_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "transcript_text",
+                "displayName": "transcript_text",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "ingested_at_utc",
+                "displayName": "ingested_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_due_at_utc",
+                "displayName": "draft_due_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_ready_at_utc",
+                "displayName": "draft_ready_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "approved_at_utc",
+                "displayName": "approved_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "sent_at_utc",
+                "displayName": "sent_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {
+            "waitForSubWorkflow": true
+          }
+        },
+        "id": "7f111205-bcb3-4c62-b9ff-c89e9f9bcf2f",
+        "name": "Call insight-extractor",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -176,
+          272
+        ]
+      }
+    ],
+    "connections": {
+      "Transcript Ingest Webhook": {
+        "main": [
+          [
+            {
+              "node": "Validate + Case ID",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate + Case ID": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets Cases Append",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Call insight-extractor",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-07T12:25:26.842Z",
+        "id": 115,
+        "workflowId": "H0x0TpT3WfPZxELo",
+        "versionId": "ace94ecf-12e5-4009-a9e0-548181237763",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-07T12:25:33.375Z",
+        "id": 120,
+        "workflowId": "H0x0TpT3WfPZxELo",
+        "versionId": "ace94ecf-12e5-4009-a9e0-548181237763",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

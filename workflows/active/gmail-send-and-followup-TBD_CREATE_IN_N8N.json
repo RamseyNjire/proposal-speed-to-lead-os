@@ -1,0 +1,148 @@
+{
+  "name": "gmail-send-and-followup",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-send-and-followup",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "5652887f-a37a-4e3f-9a60-c7bf8fc11ae2",
+      "name": "Gmail Send Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const founder = String($json.founder_status || '').toUpperCase();\nif (founder !== 'APPROVED') {\n  throw new Error('Refusing send: founder_status is not APPROVED');\n}\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'APPROVED'\n  }\n}];"
+      },
+      "id": "50d41556-a4f9-4624-a527-57cc9a586426",
+      "name": "Guard Approved Only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Gmail 'Send' node.\n// This placeholder emulates send metadata.\nconst now = new Date().toISOString();\nreturn items.map((item) => ({\n  json: {\n    ...item.json,\n    gmail_send_record: {\n      case_id: item.json.case_id,\n      gmail_message_id: item.json.gmail_message_id || `TODO_MSG_${Date.now()}`,\n      sent_at_utc: now,\n      status: 'SENT'\n    },\n    status: 'SENT'\n  }\n}));"
+      },
+      "id": "1652137a-4a63-4c67-a8a3-ad53d00f54ec",
+      "name": "Gmail Send (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const sentAt = new Date($json.gmail_send_record?.sent_at_utc || Date.now());\nconst followup = new Date(sentAt.getTime() + 48 * 3600 * 1000).toISOString();\n\nreturn [{\n  json: {\n    ...$json,\n    followup_due_at_utc: followup,\n    final_status: 'FOLLOWUP_DUE'\n  }\n}];"
+      },
+      "id": "f0a3b743-cc2a-4c4a-afd6-076cb8622830",
+      "name": "Set Follow-up Due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Google Sheets upserts for Proposals + Activity_Log tabs.\nreturn items;"
+      },
+      "id": "14a8e094-c453-4207-9da1-a2abb26d8c61",
+      "name": "Google Sheets Send Logging (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail Send Webhook": {
+      "main": [
+        [
+          {
+            "node": "Guard Approved Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guard Approved Only": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send (TODO)": {
+      "main": [
+        [
+          {
+            "node": "Set Follow-up Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Follow-up Due": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Send Logging (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00000000-0000-0000-0000-000000000006",
+  "meta": null,
+  "id": "TBD_CREATE_IN_N8N",
+  "tags": [],
+  "pinData": {
+    "Gmail Send Webhook": [
+      {
+        "json": {
+          "case_id": "case-call-2026-03-05-glossier",
+          "client_name": "Glossier",
+          "client_email": "emily@glossier.com",
+          "status": "APPROVAL_PENDING",
+          "qa_status": "APPROVED",
+          "founder_status": "APPROVED",
+          "approved_at_utc": "2026-03-05T18:10:00Z",
+          "gmail_draft_payload": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "subject": "Marketing Proposal for Glossier",
+            "body": "Marketing Proposal for Glossier\n\n## Executive Summary\nGlossier has strong brand demand and community trust, but paid social execution has been inconsistent. This proposal addresses that gap with a profitable 90-day scaling plan from roughly $180K toward $400K monthly revenue.\n\n## Scope of Services\nPaid social strategy and media buying, creative testing framework, CRO coordination, and retention alignment across email/SMS with weekly reporting.\n\n## Strategy and Approach\nExecute trust-first Meta creative, rapid iteration cycles, and funnel optimization while preserving brand voice. Prioritize profitable scaling and tighter acquisition-to-retention handoff.\n\n## Budget and Pricing\nStart with approximately $20K paid media test budget and phase service scope by milestone performance, with scale contingent on CAC and ROAS guardrails.\n\n## Terms and Conditions\nWork begins after written approval. Founder signs off on final strategy direction, communication cadence is weekly, and revision loops remain tied to the same case_id for auditability.\n",
+            "gmail_draft_id": "draft-case-call-2026-03-05-glossier"
+          }
+        }
+      }
+    ]
+  }
+}

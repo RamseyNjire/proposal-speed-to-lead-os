@@ -1,48 +1,49 @@
-# n8n Project Starter (System Template)
+# Proposal Speed-to-Lead OS
 
-Use this template for any n8n automation system that has multiple workflows, shared data contracts, operational monitoring, and ongoing n8n↔repo synchronization.
+Transcript-to-proposal automation system built with `n8n + Google Sheets + Gmail` and human approval gates.
+
+## What this does
+1. Accepts a transcript payload at webhook intake.
+2. Extracts a discovery brief.
+3. Builds a research dossier.
+4. Composes a deterministic proposal draft.
+5. Sends QA HTML email with approve/revision actions.
+6. Sends client proposal only when approval status is `APPROVED`.
+7. Logs lifecycle and activity in Google Sheets.
 
 ## Core principles
-1. Sync-first: keep repo JSON in lockstep with live n8n workflows.
-2. PR-first: no direct `main` pushes; use short-lived review branches.
-3. Guardrails-first: run pre-push checks (scope + secret scan + API sanity).
-4. Docs-with-code: update docs in the same PR as behavior changes.
+1. Sync-first: repo JSON mirrors live n8n workflows.
+2. PR-first: no direct `main` pushes.
+3. Docs-with-code: update docs in same PR as behavior changes.
+4. Human-gated send: QA/founder control before client delivery.
 
 ## Quick start
-1. Copy this folder into a new repo.
-2. Copy `.env.example` to `.env` and fill local values.
-3. Define workflow allowlist in `scripts/workflow-allowlist.txt`.
-4. Install hooks:
+1. Copy `.env.example` to `.env` and fill `N8N_BASE_URL`, `N8N_API_KEY`, `GOOGLE_SHEETS_SPREADSHEET_ID`.
+2. Add Google service account JSON to `secrets/google-service-account.json`.
+3. Provision sheet tabs/headers:
    ```bash
-   ./scripts/install-git-hooks.sh
+   ./scripts/setup-google-sheet.py
    ```
-5. Pull/sync workflows:
+4. Sync workflows from n8n:
    ```bash
    ./scripts/sync-project-workflows.sh
    ```
-6. Run checks before push:
+5. Run checks:
    ```bash
    ./scripts/prepush-check.sh
    ```
 
-## Folder layout
-- `docs/`: system-level docs and operating standards.
-- `workflows/active/`: current exported workflow JSON files (git source of truth).
-- `workflows/archive/`: historical workflow JSON files.
-- `scripts/`: sync, validation, and automation support scripts.
-- `secrets/`: local-only sensitive material (gitignored).
-- `.githooks/`: repo-managed git hooks.
+## Key docs
+- [System Overview](/Users/app/Documents/proposal-speed-to-lead-os/docs/SYSTEM_OVERVIEW.md)
+- [Workflow Inventory](/Users/app/Documents/proposal-speed-to-lead-os/docs/WORKFLOW_INVENTORY.md)
+- [Runbook](/Users/app/Documents/proposal-speed-to-lead-os/docs/RUNBOOK.md)
+- [Data Contracts](/Users/app/Documents/proposal-speed-to-lead-os/docs/DATA_CONTRACTS.md)
+- [Google Sheets Schema](/Users/app/Documents/proposal-speed-to-lead-os/docs/GOOGLE_SHEETS_SCHEMA.md)
+- [Bootstrap Guide](/Users/app/Documents/proposal-speed-to-lead-os/docs/BOOTSTRAP.md)
 
-## Minimum maintainability standard
-- Every workflow documented in `docs/WORKFLOW_INVENTORY.md`.
-- Every schedule documented in `docs/SYSTEM_OVERVIEW.md` + runbook.
-- Data contracts documented in `docs/DATA_CONTRACTS.md`.
-- Monitoring documented and tested (`docs/SYNC_MONITORING.md`).
-- Release checklist followed (`docs/RELEASE_CHECKLIST.md`).
-- Security checklist reviewed (`docs/SECURITY.md`).
-
-## Suggested branch workflow
-- Branch names: `codex/<short-topic>`
-- Commit in logical units.
-- Open PR, review, then merge.
-- After merge: re-sync from live n8n if UI edits happened during review.
+## Repo layout
+- `docs/`: architecture, operations, contracts.
+- `workflows/active/`: live synced exports + blueprint JSONs.
+- `scripts/`: sync/check/provision scripts.
+- `fixtures/`: deterministic test payloads/expected outputs.
+- `secrets/`: local-only secret files (gitignored).

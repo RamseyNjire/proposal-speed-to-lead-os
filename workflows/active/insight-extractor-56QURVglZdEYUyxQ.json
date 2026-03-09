@@ -1,0 +1,915 @@
+{
+  "updatedAt": "2026-03-07T12:25:28.031Z",
+  "createdAt": "2026-03-07T10:32:51.254Z",
+  "id": "56QURVglZdEYUyxQ",
+  "name": "insight-extractor",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "insight-extractor",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "4336a06c-0f4d-4832-8a7b-73f95bca4fc6",
+      "name": "Insight Extractor Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        272
+      ],
+      "webhookId": "cd71e80c-d70c-4591-b916-9c31193a767a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = String($json.transcript_text || '');\nif (!text.trim()) throw new Error('transcript_text is required for extraction');\n\nconst findNum = (regex) => {\n  const m = text.match(regex);\n  return m ? Number(m[1]) : null;\n};\n\nconst roas = findNum(/ROAS(?: is| at)?\\s*([0-9]+(?:\\.[0-9]+)?)/i);\nconst cacPrev = (() => {\n  const m = text.match(/CAC rose from \\$?([0-9]+(?:\\.[0-9]+)?) to \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n  return m ? Number(m[1]) : null;\n})();\nconst cacCurrent = (() => {\n  const m = text.match(/CAC rose from \\$?([0-9]+(?:\\.[0-9]+)?) to \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n  return m ? Number(m[2]) : null;\n})();\nconst spend = findNum(/spend about \\$?([0-9]+(?:,[0-9]{3})*(?:\\.[0-9]+)?)/i);\nconst mobileShare = findNum(/([0-9]+(?:\\.[0-9]+)?)% of paid traffic is mobile/i);\nconst checkoutCv = findNum(/Checkout conversion is only ([0-9]+(?:\\.[0-9]+)?)%/i);\nconst aov = findNum(/average order value is \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n\nconst goalRoas = findNum(/ROAS(?: at)? ([0-9]+(?:\\.[0-9]+)?)\\+/i);\nconst goalCac = findNum(/CAC below \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n\nconst constraints = [];\nif (/small team/i.test(text)) constraints.push('Small team');\nif (/one video editor/i.test(text)) constraints.push('One video editor');\nif (/no signed UGC creators/i.test(text)) constraints.push('No signed UGC creators yet');\n\nconst competitors = [];\nconst compMatch = text.match(/Competitors[^\\n]*\\nClient:\\s*([^\\.]+)/i);\nif (compMatch) {\n  compMatch[1].split(/,|and/i).map(s => s.trim()).filter(Boolean).forEach(c => competitors.push(c.replace(/\\.$/, '')));\n}\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'EXTRACTION_IN_PROGRESS',\n    discovery_brief: {\n      case_id: $json.case_id,\n      problem_summary: 'Meta-to-Shopify efficiency decline with ROAS drop and CAC increase plus conversion leakage.',\n      goal_summary: `Target ROAS >= ${goalRoas ?? 'TBD'} and CAC < ${goalCac ?? 'TBD'} in 90 days with repeatable creative testing.`,\n      constraints,\n      key_metrics: {\n        roas_current: roas,\n        cac_previous: cacPrev,\n        cac_current: cacCurrent,\n        monthly_ad_spend: spend,\n        mobile_traffic_share_pct: mobileShare,\n        checkout_conversion_rate_pct: checkoutCv,\n        average_order_value: aov\n      },\n      competitors\n    }\n  }\n}];"
+      },
+      "id": "2fd06deb-aad8-453c-a819-f0c0fa67ea2f",
+      "name": "Extract Discovery Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 744334751,
+          "mode": "list",
+          "cachedResultName": "Extracted_Insights",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=744334751"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "problem_summary": "={{ $json.discovery_brief.problem_summary }}",
+            "goal_summary": "={{ $json.discovery_brief.goal_summary }}",
+            "constraints_json": "={{ JSON.stringify($json.discovery_brief.constraints || []) }}",
+            "key_metrics_json": "={{ JSON.stringify($json.discovery_brief.key_metrics || {}) }}",
+            "competitors_json": "={{ JSON.stringify($json.discovery_brief.competitors || []) }}",
+            "updated_at_utc": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "problem_summary",
+              "displayName": "problem_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "goal_summary",
+              "displayName": "goal_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "constraints_json",
+              "displayName": "constraints_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "key_metrics_json",
+              "displayName": "key_metrics_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "competitors_json",
+              "displayName": "competitors_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at_utc",
+              "displayName": "updated_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0e5e5d48-f6ac-4ce2-8a0f-6f37ef93b3cb",
+      "name": "Google Sheets Insights Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -480,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "Edwfev3WfHY72DP7",
+          "mode": "list",
+          "cachedResultName": "research-enricher",
+          "cachedResultUrl": "/workflow/Edwfev3WfHY72DP7"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "website_url": "={{ $json.website_url }}",
+            "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+            "founder_approver_email": "={{ $json.founder_approver_email }}",
+            "status": "={{ $json.status }}",
+            "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+            "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+            "discovery_brief": "={{ $json.discovery_brief }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_reviewer_email",
+              "displayName": "qa_reviewer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_approver_email",
+              "displayName": "founder_approver_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "ingested_at_utc",
+              "displayName": "ingested_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_due_at_utc",
+              "displayName": "draft_due_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "discovery_brief",
+              "displayName": "discovery_brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "fbce02d2-fc9b-4a29-aa56-6aab20f4caa2",
+      "name": "Call research-enricher",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "source"
+            },
+            {
+              "name": "transcript_id"
+            },
+            {
+              "name": "captured_at_utc"
+            },
+            {
+              "name": "client_name"
+            },
+            {
+              "name": "client_email"
+            },
+            {
+              "name": "website_url"
+            },
+            {
+              "name": "qa_reviewer_email"
+            },
+            {
+              "name": "founder_approver_email"
+            },
+            {
+              "name": "transcript_text"
+            },
+            {
+              "name": "case_id"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "ingested_at_utc"
+            },
+            {
+              "name": "draft_due_at_utc"
+            },
+            {
+              "name": "draft_ready_at_utc"
+            },
+            {
+              "name": "approved_at_utc"
+            },
+            {
+              "name": "sent_at_utc"
+            }
+          ]
+        }
+      },
+      "id": "3f389f6b-6f4d-45ea-8ceb-a23a0d94f5c7",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        464
+      ]
+    }
+  ],
+  "connections": {
+    "Insight Extractor Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Discovery Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Discovery Brief": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Insights Append",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call research-enricher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Extract Discovery Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "source": "manual",
+          "transcript_id": "call-2026-03-07-allbirds-automation",
+          "captured_at_utc": "2026-03-07T11:30:00Z",
+          "client_name": "Allbirds",
+          "client_email": "growth@allbirds.com",
+          "website_url": "https://www.allbirds.com",
+          "qa_reviewer_email": "ramsey@intellom8.com",
+          "founder_approver_email": "ramsey@intellom8.com",
+          "transcript_text": "DISCOVERY CALL TRANSCRIPT\nAgency: Intellom8 Automation Services\nClient: Allbirds\nDate: March 7, 2026\n\nPARTICIPANTS\nRamsey Njire - Founder, Intellom8\nJordan Kim - VP Growth, Allbirds\nMaya Chen - Ecommerce Operations Lead, Allbirds\n\nRamsey: Give me the current state of operations and where automation gaps are hurting revenue.\nJordan: We are doing about $3.2M/month online, but paid CAC is up 34% YoY and reporting is too slow to react.\nMaya: Our weekly performance report takes around 8 hours manually across Shopify, Klaviyo, GA4, Meta Ads, and Google Ads.\nRamsey: What does that delay cause in practice?\nJordan: We miss optimization windows. We often change campaigns 3-4 days late because data is fragmented.\nMaya: Our abandoned checkout flow is also delayed. Some users get recovery emails 10-12 hours later instead of within 30 minutes.\nRamsey: Any customer support workflow issues?\nMaya: Yes. About 3,400 tickets per week. Routing is rule-based but still manual in edge cases. First response is averaging 18 hours.\nJordan: We need faster triage so VIP and shipping-delay tickets escalate automatically.\n\nRamsey: What systems are in scope if we build this in phases?\nMaya: Shopify, Klaviyo, Gorgias, GA4, Meta Ads, Google Ads, Slack, and Google Sheets.\nJordan: We also want a single daily executive summary emailed at 8:00 AM with spend, CAC, ROAS, conversion rate, and revenue.\nRamsey: What are your 90-day targets?\nJordan: 1) Cut reporting time from 8 hours/week to under 1 hour/week.\nJordan: 2) Increase abandoned-cart recovery revenue by at least 15%.\nJordan: 3) Reduce support first-response time from 18 hours to under 6 hours.\nJordan: 4) Improve paid efficiency enough to lower blended CAC by 10%.\n\nRamsey: What constraints should we plan around?\nMaya: No major re-platforming this quarter. We need low-risk implementation and clear rollback for every automation.\nJordan: Brand voice and customer trust are non-negotiable in any lifecycle messaging.\nRamsey: Who approves the proposal?\nJordan: I own evaluation, Maya validates workflow design, and CFO signs final budget.\nRamsey: Budget range?\nJordan: We can do a one-time build plus monthly optimization if ROI is visible in the first 6 weeks.\n\nRamsey: Great. We will propose a phased automation plan: reporting automation, lifecycle trigger optimization, and support routing with SLA alerts.\nJordan: Perfect. Send a detailed proposal with timeline, implementation approach, and pricing options by Tuesday.",
+          "case_id": "case-call-2026-03-07-allbirds-automation",
+          "status": "NEW",
+          "ingested_at_utc": "2026-03-07T12:06:51.328Z",
+          "draft_due_at_utc": "2026-03-07T16:06:51.328Z",
+          "draft_ready_at_utc": "",
+          "approved_at_utc": "",
+          "sent_at_utc": ""
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "3d481261-c98c-427e-918a-a132b7788969",
+  "activeVersionId": "3d481261-c98c-427e-918a-a132b7788969",
+  "versionCounter": 54,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:51.254Z",
+      "createdAt": "2026-03-07T10:32:51.254Z",
+      "role": "workflow:owner",
+      "workflowId": "56QURVglZdEYUyxQ",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T12:25:28.031Z",
+    "createdAt": "2026-03-07T12:25:28.031Z",
+    "versionId": "3d481261-c98c-427e-918a-a132b7788969",
+    "workflowId": "56QURVglZdEYUyxQ",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "insight-extractor",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "4336a06c-0f4d-4832-8a7b-73f95bca4fc6",
+        "name": "Insight Extractor Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -976,
+          272
+        ],
+        "webhookId": "cd71e80c-d70c-4591-b916-9c31193a767a"
+      },
+      {
+        "parameters": {
+          "jsCode": "const text = String($json.transcript_text || '');\nif (!text.trim()) throw new Error('transcript_text is required for extraction');\n\nconst findNum = (regex) => {\n  const m = text.match(regex);\n  return m ? Number(m[1]) : null;\n};\n\nconst roas = findNum(/ROAS(?: is| at)?\\s*([0-9]+(?:\\.[0-9]+)?)/i);\nconst cacPrev = (() => {\n  const m = text.match(/CAC rose from \\$?([0-9]+(?:\\.[0-9]+)?) to \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n  return m ? Number(m[1]) : null;\n})();\nconst cacCurrent = (() => {\n  const m = text.match(/CAC rose from \\$?([0-9]+(?:\\.[0-9]+)?) to \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n  return m ? Number(m[2]) : null;\n})();\nconst spend = findNum(/spend about \\$?([0-9]+(?:,[0-9]{3})*(?:\\.[0-9]+)?)/i);\nconst mobileShare = findNum(/([0-9]+(?:\\.[0-9]+)?)% of paid traffic is mobile/i);\nconst checkoutCv = findNum(/Checkout conversion is only ([0-9]+(?:\\.[0-9]+)?)%/i);\nconst aov = findNum(/average order value is \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n\nconst goalRoas = findNum(/ROAS(?: at)? ([0-9]+(?:\\.[0-9]+)?)\\+/i);\nconst goalCac = findNum(/CAC below \\$?([0-9]+(?:\\.[0-9]+)?)/i);\n\nconst constraints = [];\nif (/small team/i.test(text)) constraints.push('Small team');\nif (/one video editor/i.test(text)) constraints.push('One video editor');\nif (/no signed UGC creators/i.test(text)) constraints.push('No signed UGC creators yet');\n\nconst competitors = [];\nconst compMatch = text.match(/Competitors[^\\n]*\\nClient:\\s*([^\\.]+)/i);\nif (compMatch) {\n  compMatch[1].split(/,|and/i).map(s => s.trim()).filter(Boolean).forEach(c => competitors.push(c.replace(/\\.$/, '')));\n}\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'EXTRACTION_IN_PROGRESS',\n    discovery_brief: {\n      case_id: $json.case_id,\n      problem_summary: 'Meta-to-Shopify efficiency decline with ROAS drop and CAC increase plus conversion leakage.',\n      goal_summary: `Target ROAS >= ${goalRoas ?? 'TBD'} and CAC < ${goalCac ?? 'TBD'} in 90 days with repeatable creative testing.`,\n      constraints,\n      key_metrics: {\n        roas_current: roas,\n        cac_previous: cacPrev,\n        cac_current: cacCurrent,\n        monthly_ad_spend: spend,\n        mobile_traffic_share_pct: mobileShare,\n        checkout_conversion_rate_pct: checkoutCv,\n        average_order_value: aov\n      },\n      competitors\n    }\n  }\n}];"
+        },
+        "id": "2fd06deb-aad8-453c-a819-f0c0fa67ea2f",
+        "name": "Extract Discovery Brief",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -720,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 744334751,
+            "mode": "list",
+            "cachedResultName": "Extracted_Insights",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=744334751"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "problem_summary": "={{ $json.discovery_brief.problem_summary }}",
+              "goal_summary": "={{ $json.discovery_brief.goal_summary }}",
+              "constraints_json": "={{ JSON.stringify($json.discovery_brief.constraints || []) }}",
+              "key_metrics_json": "={{ JSON.stringify($json.discovery_brief.key_metrics || {}) }}",
+              "competitors_json": "={{ JSON.stringify($json.discovery_brief.competitors || []) }}",
+              "updated_at_utc": "={{ $now.toISO() }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "problem_summary",
+                "displayName": "problem_summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "goal_summary",
+                "displayName": "goal_summary",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "constraints_json",
+                "displayName": "constraints_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "key_metrics_json",
+                "displayName": "key_metrics_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "competitors_json",
+                "displayName": "competitors_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "updated_at_utc",
+                "displayName": "updated_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "0e5e5d48-f6ac-4ce2-8a0f-6f37ef93b3cb",
+        "name": "Google Sheets Insights Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -480,
+          272
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "Edwfev3WfHY72DP7",
+            "mode": "list",
+            "cachedResultName": "research-enricher",
+            "cachedResultUrl": "/workflow/Edwfev3WfHY72DP7"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "website_url": "={{ $json.website_url }}",
+              "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+              "founder_approver_email": "={{ $json.founder_approver_email }}",
+              "status": "={{ $json.status }}",
+              "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+              "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+              "discovery_brief": "={{ $json.discovery_brief }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "website_url",
+                "displayName": "website_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_reviewer_email",
+                "displayName": "qa_reviewer_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_approver_email",
+                "displayName": "founder_approver_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "ingested_at_utc",
+                "displayName": "ingested_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_due_at_utc",
+                "displayName": "draft_due_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "discovery_brief",
+                "displayName": "discovery_brief",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "id": "fbce02d2-fc9b-4a29-aa56-6aab20f4caa2",
+        "name": "Call research-enricher",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -224,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "source"
+              },
+              {
+                "name": "transcript_id"
+              },
+              {
+                "name": "captured_at_utc"
+              },
+              {
+                "name": "client_name"
+              },
+              {
+                "name": "client_email"
+              },
+              {
+                "name": "website_url"
+              },
+              {
+                "name": "qa_reviewer_email"
+              },
+              {
+                "name": "founder_approver_email"
+              },
+              {
+                "name": "transcript_text"
+              },
+              {
+                "name": "case_id"
+              },
+              {
+                "name": "status"
+              },
+              {
+                "name": "ingested_at_utc"
+              },
+              {
+                "name": "draft_due_at_utc"
+              },
+              {
+                "name": "draft_ready_at_utc"
+              },
+              {
+                "name": "approved_at_utc"
+              },
+              {
+                "name": "sent_at_utc"
+              }
+            ]
+          }
+        },
+        "id": "3f389f6b-6f4d-45ea-8ceb-a23a0d94f5c7",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1024,
+          464
+        ]
+      }
+    ],
+    "connections": {
+      "Insight Extractor Webhook": {
+        "main": [
+          [
+            {
+              "node": "Extract Discovery Brief",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Discovery Brief": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets Insights Append",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Call research-enricher",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Extract Discovery Brief",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-07T12:25:28.162Z",
+        "id": 116,
+        "workflowId": "56QURVglZdEYUyxQ",
+        "versionId": "3d481261-c98c-427e-918a-a132b7788969",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-07T12:25:34.423Z",
+        "id": 121,
+        "workflowId": "56QURVglZdEYUyxQ",
+        "versionId": "3d481261-c98c-427e-918a-a132b7788969",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

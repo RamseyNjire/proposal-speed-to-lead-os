@@ -1,0 +1,661 @@
+{
+  "updatedAt": "2026-03-07T12:02:45.794Z",
+  "createdAt": "2026-03-07T10:32:49.279Z",
+  "id": "x3SEMzP1S94toYGp",
+  "name": "gmail-send-and-followup",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-send-and-followup",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "5652887f-a37a-4e3f-9a60-c7bf8fc11ae2",
+      "name": "Gmail Send Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -900,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const founder = String($json.founder_status || '').toUpperCase();\nif (founder !== 'APPROVED') {\n  throw new Error('Refusing send: founder_status is not APPROVED');\n}\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'APPROVED'\n  }\n}];"
+      },
+      "id": "50d41556-a4f9-4624-a527-57cc9a586426",
+      "name": "Guard Approved Only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.client_email }}",
+        "subject": "={{ $json.gmail_draft_payload.subject || (\"Proposal for \" + ($json.client_name || \"Client\")) }}",
+        "emailType": "text",
+        "message": "={{ $json.gmail_draft_payload.body || $json.proposal_section_draft.draft_body_markdown }}",
+        "options": {}
+      },
+      "id": "1652137a-4a63-4c67-a8a3-ad53d00f54ec",
+      "name": "Gmail Send To Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -420,
+        260
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pwMK2jDEWY5arMX3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sentAt = new Date(Date.now());\nconst followup = new Date(sentAt.getTime() + 48 * 3600 * 1000).toISOString();\nreturn [{\n  json: {\n    ...$json,\n    sent_at_utc: sentAt.toISOString(),\n    approved_at_utc: $json.approved_at_utc || sentAt.toISOString(),\n    followup_due_at_utc: followup,\n    status: 'SENT',\n    final_status: 'FOLLOWUP_DUE'\n  }\n}];"
+      },
+      "id": "f0a3b743-cc2a-4c4a-afd6-076cb8622830",
+      "name": "Set Follow-up Due",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -180,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 478137279,
+          "mode": "list",
+          "cachedResultName": "Activity_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=478137279"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "event_type": "={{ \"proposal_sent\" }}",
+            "status": "={{ $json.status }}",
+            "details": "={{ \"Proposal sent via Gmail; follow-up due at \" + $json.followup_due_at_utc }}",
+            "created_at_utc": "={{ $json.sent_at_utc }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "event_type",
+              "displayName": "event_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "details",
+              "displayName": "details",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at_utc",
+              "displayName": "created_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "14a8e094-c453-4207-9da1-a2abb26d8c61",
+      "name": "Google Sheets Activity Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        60,
+        260
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "case_id"
+            },
+            {
+              "name": "client_name"
+            },
+            {
+              "name": "client_email"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "qa_status"
+            },
+            {
+              "name": "founder_status"
+            },
+            {
+              "name": "reviewer"
+            },
+            {
+              "name": "review_notes"
+            },
+            {
+              "name": "reviewed_at_utc"
+            },
+            {
+              "name": "approved_at_utc"
+            },
+            {
+              "name": "proposal_section_draft",
+              "type": "object"
+            },
+            {
+              "name": "gmail_draft_payload",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "496850a8-883a-4189-b750-658d33162bd0",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1020,
+        460
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail Send Webhook": {
+      "main": [
+        [
+          {
+            "node": "Guard Approved Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guard Approved Only": {
+      "main": [
+        [
+          {
+            "node": "Gmail Send To Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Follow-up Due": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Activity Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Send To Client": {
+      "main": [
+        [
+          {
+            "node": "Set Follow-up Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Guard Approved Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+  "activeVersionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+  "versionCounter": 21,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:49.279Z",
+      "createdAt": "2026-03-07T10:32:49.279Z",
+      "role": "workflow:owner",
+      "workflowId": "x3SEMzP1S94toYGp",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T12:02:45.797Z",
+    "createdAt": "2026-03-07T12:02:45.797Z",
+    "versionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+    "workflowId": "x3SEMzP1S94toYGp",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "gmail-send-and-followup",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "5652887f-a37a-4e3f-9a60-c7bf8fc11ae2",
+        "name": "Gmail Send Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -900,
+          260
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const founder = String($json.founder_status || '').toUpperCase();\nif (founder !== 'APPROVED') {\n  throw new Error('Refusing send: founder_status is not APPROVED');\n}\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'APPROVED'\n  }\n}];"
+        },
+        "id": "50d41556-a4f9-4624-a527-57cc9a586426",
+        "name": "Guard Approved Only",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -660,
+          260
+        ]
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $json.client_email }}",
+          "subject": "={{ $json.gmail_draft_payload.subject || (\"Proposal for \" + ($json.client_name || \"Client\")) }}",
+          "emailType": "text",
+          "message": "={{ $json.gmail_draft_payload.body || $json.proposal_section_draft.draft_body_markdown }}",
+          "options": {}
+        },
+        "id": "1652137a-4a63-4c67-a8a3-ad53d00f54ec",
+        "name": "Gmail Send To Client",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          -420,
+          260
+        ],
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "pwMK2jDEWY5arMX3",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "const sentAt = new Date(Date.now());\nconst followup = new Date(sentAt.getTime() + 48 * 3600 * 1000).toISOString();\nreturn [{\n  json: {\n    ...$json,\n    sent_at_utc: sentAt.toISOString(),\n    approved_at_utc: $json.approved_at_utc || sentAt.toISOString(),\n    followup_due_at_utc: followup,\n    status: 'SENT',\n    final_status: 'FOLLOWUP_DUE'\n  }\n}];"
+        },
+        "id": "f0a3b743-cc2a-4c4a-afd6-076cb8622830",
+        "name": "Set Follow-up Due",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -180,
+          260
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 478137279,
+            "mode": "list",
+            "cachedResultName": "Activity_Log",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=478137279"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "event_type": "={{ \"proposal_sent\" }}",
+              "status": "={{ $json.status }}",
+              "details": "={{ \"Proposal sent via Gmail; follow-up due at \" + $json.followup_due_at_utc }}",
+              "created_at_utc": "={{ $json.sent_at_utc }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "event_type",
+                "displayName": "event_type",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "details",
+                "displayName": "details",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "created_at_utc",
+                "displayName": "created_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "14a8e094-c453-4207-9da1-a2abb26d8c61",
+        "name": "Google Sheets Activity Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          60,
+          260
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "case_id"
+              },
+              {
+                "name": "client_name"
+              },
+              {
+                "name": "client_email"
+              },
+              {
+                "name": "status"
+              },
+              {
+                "name": "qa_status"
+              },
+              {
+                "name": "founder_status"
+              },
+              {
+                "name": "reviewer"
+              },
+              {
+                "name": "review_notes"
+              },
+              {
+                "name": "reviewed_at_utc"
+              },
+              {
+                "name": "approved_at_utc"
+              },
+              {
+                "name": "proposal_section_draft",
+                "type": "object"
+              },
+              {
+                "name": "gmail_draft_payload",
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "id": "496850a8-883a-4189-b750-658d33162bd0",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1020,
+          460
+        ]
+      }
+    ],
+    "connections": {
+      "Gmail Send Webhook": {
+        "main": [
+          [
+            {
+              "node": "Guard Approved Only",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Guard Approved Only": {
+        "main": [
+          [
+            {
+              "node": "Gmail Send To Client",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Follow-up Due": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets Activity Append",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Gmail Send To Client": {
+        "main": [
+          [
+            {
+              "node": "Set Follow-up Due",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Guard Approved Only",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-07T12:02:45.947Z",
+        "id": 105,
+        "workflowId": "x3SEMzP1S94toYGp",
+        "versionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-07T12:02:52.542Z",
+        "id": 111,
+        "workflowId": "x3SEMzP1S94toYGp",
+        "versionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-07T12:25:38.497Z",
+        "id": 125,
+        "workflowId": "x3SEMzP1S94toYGp",
+        "versionId": "491164d1-6eff-46f8-9b68-01e96aca45b6",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

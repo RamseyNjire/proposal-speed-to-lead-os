@@ -2,3 +2,17 @@
 # Example:
 # rtFB4KV6qDGdhggP6pCRA
 # Tz3oVUHprEZoVLAo
+#
+# v1 transcript-to-proposal workflow IDs:
+# transcript-intake=H0x0TpT3WfPZxELo
+# insight-extractor=56QURVglZdEYUyxQ
+# research-enricher=Edwfev3WfHY72DP7
+# proposal-composer=fdGPPZlrGjwCkWH8
+# human-qa-and-approval=w1FE4HWHsATg3hfr
+# gmail-send-and-followup=x3SEMzP1S94toYGp
+x3SEMzP1S94toYGp
+w1FE4HWHsATg3hfr
+56QURVglZdEYUyxQ
+fdGPPZlrGjwCkWH8
+Edwfev3WfHY72DP7
+H0x0TpT3WfPZxELo

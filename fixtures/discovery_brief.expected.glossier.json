@@ -1,0 +1,31 @@
+{
+  "case_id": "case-call-2026-03-05-glossier",
+  "problem_summary": "Strong organic brand equity is not translating into scalable, consistent paid performance and execution cadence.",
+  "goal_summary": "In 90 days, establish profitable paid growth and improve monthly revenue trajectory from $180K toward $400K.",
+  "constraints": [
+    "Lean execution team after restructuring",
+    "Need to preserve brand voice and trust"
+  ],
+  "key_metrics": {
+    "monthly_revenue_current": 180000,
+    "monthly_revenue_goal_low": 800000,
+    "monthly_revenue_goal_high": 1000000,
+    "monthly_revenue_90d_target": 400000,
+    "site_conversion_rate": 1.8,
+    "instagram_followers": 2800000,
+    "tiktok_followers": 400000,
+    "creative_roas_best": 4.1,
+    "sms_roas_best": 18.5,
+    "email_revenue_share_peak_pct": 30,
+    "aov_low": 52,
+    "aov_high": 68
+  },
+  "competitors": [
+    "Rhode",
+    "Tatcha",
+    "Ereskin",
+    "The Ordinary",
+    "Summer Fridays",
+    "Rare Beauty"
+  ]
+}
