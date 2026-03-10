@@ -1,0 +1,151 @@
+{
+  "name": "research-enricher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "research-enricher",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "6cd514f6-7246-48db-be80-4fbe1f311e24",
+      "name": "Research Enricher Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -980,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $json.discovery_brief || {};\nconst competitors = Array.isArray(brief.competitors) ? brief.competitors : [];\n\nconst competitorFindings = competitors.map((name) => ({\n  name,\n  messaging_hook: `TODO: review ${name} top hooks`,\n  landing_page_angle: `TODO: capture ${name} primary conversion angle`\n}));\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'RESEARCH_IN_PROGRESS',\n    research_dossier: {\n      case_id: $json.case_id,\n      client_site_findings: [\n        'TODO: summarize offer clarity from homepage',\n        'TODO: summarize funnel friction from product and checkout paths'\n      ],\n      competitor_findings: competitorFindings,\n      meta_ad_library_findings: [\n        'TODO: top 3 recurring hooks',\n        'TODO: top 3 creative formats',\n        'TODO: offer/promotional pattern summary'\n      ]\n    }\n  }\n}];"
+      },
+      "id": "57688fef-acd9-49b3-ba91-0cc8482fa5cd",
+      "name": "Build Research Dossier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Google Sheets append/update into Research tab.\nreturn items;"
+      },
+      "id": "18863595-c1de-4cbf-845e-2e3dd327df8b",
+      "name": "Google Sheets Research Upsert (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || '').replace(/\\/$/, '') + '/webhook/proposal-composer' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "3243de79-7396-46f7-8928-0cb059f1686a",
+      "name": "Call proposal-composer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -220,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Research Enricher Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Research Dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Research Dossier": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Research Upsert (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Research Upsert (TODO)": {
+      "main": [
+        [
+          {
+            "node": "Call proposal-composer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00000000-0000-0000-0000-000000000003",
+  "meta": null,
+  "id": "TBD_CREATE_IN_N8N",
+  "tags": [],
+  "pinData": {
+    "Research Enricher Webhook": [
+      {
+        "json": {
+          "case_id": "case-call-2026-03-05-glossier",
+          "client_name": "Glossier",
+          "website_url": "https://www.glossier.com",
+          "status": "EXTRACTION_IN_PROGRESS",
+          "discovery_brief": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "problem_summary": "Strong organic brand equity is not translating into scalable, consistent paid performance and execution cadence.",
+            "goal_summary": "In 90 days, establish profitable paid growth and improve monthly revenue trajectory from $180K toward $400K.",
+            "constraints": [
+              "Lean execution team after restructuring",
+              "Need to preserve brand voice and trust"
+            ],
+            "key_metrics": {
+              "monthly_revenue_current": 180000,
+              "monthly_revenue_goal_low": 800000,
+              "monthly_revenue_goal_high": 1000000,
+              "monthly_revenue_90d_target": 400000,
+              "site_conversion_rate": 1.8,
+              "instagram_followers": 2800000,
+              "tiktok_followers": 400000,
+              "creative_roas_best": 4.1,
+              "sms_roas_best": 18.5,
+              "email_revenue_share_peak_pct": 30,
+              "aov_low": 52,
+              "aov_high": 68
+            },
+            "competitors": [
+              "Rhode",
+              "Tatcha",
+              "Ereskin",
+              "The Ordinary",
+              "Summer Fridays",
+              "Rare Beauty"
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

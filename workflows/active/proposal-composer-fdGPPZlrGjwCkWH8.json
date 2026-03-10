@@ -1,0 +1,1029 @@
+{
+  "updatedAt": "2026-03-08T15:20:55.045Z",
+  "createdAt": "2026-03-07T10:32:52.187Z",
+  "id": "fdGPPZlrGjwCkWH8",
+  "name": "proposal-composer",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "proposal-composer",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "2cfd5930-08a4-45be-8764-5ddf72d4fb1a",
+      "name": "Proposal Composer Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        272
+      ],
+      "webhookId": "7b35de7c-3c60-4687-9e25-7be8b1b8d713"
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $json.discovery_brief || {};\nconst dossier = $json.research_dossier || {};\nconst client = $json.client_name || 'Client';\nconst problem = brief.problem_summary || 'Key growth bottlenecks identified during discovery.';\nconst goals = brief.goal_summary || 'Define and execute a profitable growth system.';\nconst metrics = brief.key_metrics || {};\n\nconst sectionTitles = [\n  'Executive Summary',\n  'Scope of Services',\n  'Strategy and Approach',\n  'Budget and Pricing',\n  'Terms and Conditions'\n];\n\nconst currentRevenue = metrics.monthly_revenue_current ? `$${metrics.monthly_revenue_current.toLocaleString()}` : 'current baseline';\nconst targetRevenue = metrics.monthly_revenue_90d_target ? `$${metrics.monthly_revenue_90d_target.toLocaleString()}` : 'target baseline';\nconst topCompetitor = (brief.competitors || [])[0] || 'category leaders';\n\nconst baseContent = {\n  'Executive Summary': `${client} has strong brand demand and community trust. Current challenge: ${problem}`,\n  'Scope of Services': 'Paid social strategy, creative iteration framework, CRO coordination, retention alignment (email/SMS), and weekly reporting cadence.',\n  'Strategy and Approach': `90-day execution focused on profitable scaling, trust-first creative testing, and retention leverage. Target outcome: ${goals}`,\n  'Budget and Pricing': `Initial paid media test budget starts at approximately $20,000 with phased service scope tied to CAC/ROAS performance gates from ${currentRevenue} toward ${targetRevenue}.`,\n  'Terms and Conditions': `Approval flow includes human QA and founder sign-off before send. Competitive context includes ${topCompetitor}; final deliverables follow agreed communication cadence and success metrics.`\n};\n\nconst sections = sectionTitles.map((title) => ({ title, content: baseContent[title] || '' }));\nconst body = [\n  `Marketing Proposal for ${client}`,\n  '',\n  ...sections.flatMap((s) => [`## ${s.title}`, s.content, ''])\n].join('\\n');\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'DRAFT_READY',\n    qa_status: 'PENDING',\n    founder_status: 'PENDING',\n    reviewer: '',\n    review_notes: '',\n    reviewed_at_utc: '',\n    draft_ready_at_utc: new Date().toISOString(),\n    proposal_section_draft: {\n      case_id: $json.case_id,\n      sections,\n      draft_body_markdown: body\n    },\n    gmail_draft_payload: {\n      case_id: $json.case_id,\n      subject: `Marketing Proposal for ${client}`,\n      body,\n      gmail_draft_id: `draft-${$json.case_id}`\n    }\n  }\n}];"
+      },
+      "id": "99fc2d45-03c6-48ad-86f0-bf79d7692208",
+      "name": "Build Proposal Sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "ramsey@intellom8.com",
+        "subject": "={{ \"QA Review Needed: \" + ($json.gmail_draft_payload.subject || \"Proposal\") + \" [\" + ($json.case_id || \"no-case-id\") + \"]\" }}",
+        "emailType": "html",
+        "message": "={{ `\n<div style=\"font-family:Arial,sans-serif;line-height:1.5;color:#111\">\n  <h2 style=\"margin:0 0 12px\">QA Review Required</h2>\n  <p style=\"margin:0 0 8px\"><strong>Case ID:</strong> ${$json.case_id || \"missing-case-id\"}</p>\n  <p style=\"margin:0 0 16px\"><strong>Client:</strong> ${$json.client_name || \"Client\"}</p>\n  <div style=\"margin:16px 0\">\n    <a href=\"https://webhooks.intellom8.com/webhook/qa-approval-action?action=approve&case_id=${encodeURIComponent($json.case_id || \"\")}\"\n       style=\"display:inline-block;background:#0b8043;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;margin-right:8px\">Approve</a>\n    <a href=\"mailto:ramsey@intellom8.com?subject=${encodeURIComponent(\"Revision Request - \" + ($json.case_id || \"no-case-id\"))}&body=${encodeURIComponent(\"Case ID: \" + ($json.case_id || \"\") + \"\\n\\nRequested changes:\\n-\")}\"\n       style=\"display:inline-block;background:#b3261e;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px\">Request Changes (add notes)</a>\n  </div>\n  <hr style=\"margin:16px 0;border:none;border-top:1px solid #ddd\" />\n  <h3 style=\"margin:0 0 8px\">Draft Preview</h3>\n  <pre style=\"white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:6px\">${$json.gmail_draft_payload?.body || \"No draft body\"}</pre>\n</div>\n` }}",
+        "options": {}
+      },
+      "id": "f0848f77-f9fd-4ac6-b9d8-2f97c6f287cc",
+      "name": "Notify QA Reviewer",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        272
+      ],
+      "webhookId": "04649017-3f89-45c2-9512-4383c52e7e81",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pwMK2jDEWY5arMX3",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 181755346,
+          "mode": "list",
+          "cachedResultName": "Proposals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=181755346"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "proposal_subject": "={{ $json.gmail_draft_payload.subject }}",
+            "proposal_body_markdown": "={{ $json.gmail_draft_payload.body }}",
+            "gmail_draft_id": "={{ $json.gmail_draft_payload.gmail_draft_id }}",
+            "status": "={{ $json.status }}",
+            "updated_at_utc": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "proposal_subject",
+              "displayName": "proposal_subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "proposal_body_markdown",
+              "displayName": "proposal_body_markdown",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "gmail_draft_id",
+              "displayName": "gmail_draft_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at_utc",
+              "displayName": "updated_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f9bb01ff-76e3-4f4e-97de-ab9ea771d848",
+      "name": "Google Sheets Proposals Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -240,
+        272
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "w1FE4HWHsATg3hfr",
+          "mode": "list",
+          "cachedResultName": "human-qa-and-approval",
+          "cachedResultUrl": "/workflow/w1FE4HWHsATg3hfr"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+            "founder_approver_email": "={{ $json.founder_approver_email }}",
+            "status": "={{ $json.status }}",
+            "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+            "qa_status": "={{ $json.qa_status }}",
+            "founder_status": "={{ $json.founder_status }}",
+            "reviewer": "={{ $json.reviewer }}",
+            "review_notes": "={{ $json.review_notes }}",
+            "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+            "approved_at_utc": "={{ $json.approved_at_utc }}",
+            "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+            "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_reviewer_email",
+              "displayName": "qa_reviewer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_approver_email",
+              "displayName": "founder_approver_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_ready_at_utc",
+              "displayName": "draft_ready_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_status",
+              "displayName": "qa_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_status",
+              "displayName": "founder_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewer",
+              "displayName": "reviewer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewed_at_utc",
+              "displayName": "reviewed_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approved_at_utc",
+              "displayName": "approved_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "proposal_section_draft",
+              "displayName": "proposal_section_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "gmail_draft_payload",
+              "displayName": "gmail_draft_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7a3176d8-5f6c-4a2d-a455-be3ec024ef46",
+      "name": "Call human-qa-and-approval",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "case_id"
+            },
+            {
+              "name": "client_name"
+            },
+            {
+              "name": "client_email"
+            },
+            {
+              "name": "website_url"
+            },
+            {
+              "name": "qa_reviewer_email"
+            },
+            {
+              "name": "founder_approver_email"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "ingested_at_utc"
+            },
+            {
+              "name": "draft_due_at_utc"
+            },
+            {
+              "name": "discovery_brief",
+              "type": "object"
+            },
+            {
+              "name": "research_dossier",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "5779798b-4726-4851-8ce9-1629e1fc5a52",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        464
+      ]
+    }
+  ],
+  "connections": {
+    "Proposal Composer Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Proposal Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Proposal Sections": {
+      "main": [
+        [
+          {
+            "node": "Notify QA Reviewer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets Proposals Append",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call human-qa-and-approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Build Proposal Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "website_url": null,
+          "status": "QA_IN_REVIEW",
+          "ingested_at_utc": null,
+          "draft_due_at_utc": null,
+          "discovery_brief": null,
+          "research_dossier": null
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "5c7bc1ef-f462-40a5-b6fd-9862b2e1176b",
+  "activeVersionId": "5c7bc1ef-f462-40a5-b6fd-9862b2e1176b",
+  "versionCounter": 43,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:52.187Z",
+      "createdAt": "2026-03-07T10:32:52.187Z",
+      "role": "workflow:owner",
+      "workflowId": "fdGPPZlrGjwCkWH8",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-08T15:20:55.048Z",
+    "createdAt": "2026-03-08T15:20:55.048Z",
+    "versionId": "5c7bc1ef-f462-40a5-b6fd-9862b2e1176b",
+    "workflowId": "fdGPPZlrGjwCkWH8",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "proposal-composer",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "2cfd5930-08a4-45be-8764-5ddf72d4fb1a",
+        "name": "Proposal Composer Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1024,
+          272
+        ],
+        "webhookId": "7b35de7c-3c60-4687-9e25-7be8b1b8d713"
+      },
+      {
+        "parameters": {
+          "jsCode": "const brief = $json.discovery_brief || {};\nconst dossier = $json.research_dossier || {};\nconst client = $json.client_name || 'Client';\nconst problem = brief.problem_summary || 'Key growth bottlenecks identified during discovery.';\nconst goals = brief.goal_summary || 'Define and execute a profitable growth system.';\nconst metrics = brief.key_metrics || {};\n\nconst sectionTitles = [\n  'Executive Summary',\n  'Scope of Services',\n  'Strategy and Approach',\n  'Budget and Pricing',\n  'Terms and Conditions'\n];\n\nconst currentRevenue = metrics.monthly_revenue_current ? `$${metrics.monthly_revenue_current.toLocaleString()}` : 'current baseline';\nconst targetRevenue = metrics.monthly_revenue_90d_target ? `$${metrics.monthly_revenue_90d_target.toLocaleString()}` : 'target baseline';\nconst topCompetitor = (brief.competitors || [])[0] || 'category leaders';\n\nconst baseContent = {\n  'Executive Summary': `${client} has strong brand demand and community trust. Current challenge: ${problem}`,\n  'Scope of Services': 'Paid social strategy, creative iteration framework, CRO coordination, retention alignment (email/SMS), and weekly reporting cadence.',\n  'Strategy and Approach': `90-day execution focused on profitable scaling, trust-first creative testing, and retention leverage. Target outcome: ${goals}`,\n  'Budget and Pricing': `Initial paid media test budget starts at approximately $20,000 with phased service scope tied to CAC/ROAS performance gates from ${currentRevenue} toward ${targetRevenue}.`,\n  'Terms and Conditions': `Approval flow includes human QA and founder sign-off before send. Competitive context includes ${topCompetitor}; final deliverables follow agreed communication cadence and success metrics.`\n};\n\nconst sections = sectionTitles.map((title) => ({ title, content: baseContent[title] || '' }));\nconst body = [\n  `Marketing Proposal for ${client}`,\n  '',\n  ...sections.flatMap((s) => [`## ${s.title}`, s.content, ''])\n].join('\\n');\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'DRAFT_READY',\n    qa_status: 'PENDING',\n    founder_status: 'PENDING',\n    reviewer: '',\n    review_notes: '',\n    reviewed_at_utc: '',\n    draft_ready_at_utc: new Date().toISOString(),\n    proposal_section_draft: {\n      case_id: $json.case_id,\n      sections,\n      draft_body_markdown: body\n    },\n    gmail_draft_payload: {\n      case_id: $json.case_id,\n      subject: `Marketing Proposal for ${client}`,\n      body,\n      gmail_draft_id: `draft-${$json.case_id}`\n    }\n  }\n}];"
+        },
+        "id": "99fc2d45-03c6-48ad-86f0-bf79d7692208",
+        "name": "Build Proposal Sections",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -736,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "sendTo": "ramsey@intellom8.com",
+          "subject": "={{ \"QA Review Needed: \" + ($json.gmail_draft_payload.subject || \"Proposal\") + \" [\" + ($json.case_id || \"no-case-id\") + \"]\" }}",
+          "emailType": "html",
+          "message": "={{ `\n<div style=\"font-family:Arial,sans-serif;line-height:1.5;color:#111\">\n  <h2 style=\"margin:0 0 12px\">QA Review Required</h2>\n  <p style=\"margin:0 0 8px\"><strong>Case ID:</strong> ${$json.case_id || \"missing-case-id\"}</p>\n  <p style=\"margin:0 0 16px\"><strong>Client:</strong> ${$json.client_name || \"Client\"}</p>\n  <div style=\"margin:16px 0\">\n    <a href=\"https://webhooks.intellom8.com/webhook/qa-approval-action?action=approve&case_id=${encodeURIComponent($json.case_id || \"\")}\"\n       style=\"display:inline-block;background:#0b8043;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px;margin-right:8px\">Approve</a>\n    <a href=\"mailto:ramsey@intellom8.com?subject=${encodeURIComponent(\"Revision Request - \" + ($json.case_id || \"no-case-id\"))}&body=${encodeURIComponent(\"Case ID: \" + ($json.case_id || \"\") + \"\\n\\nRequested changes:\\n-\")}\"\n       style=\"display:inline-block;background:#b3261e;color:#fff;text-decoration:none;padding:10px 16px;border-radius:6px\">Request Changes (add notes)</a>\n  </div>\n  <hr style=\"margin:16px 0;border:none;border-top:1px solid #ddd\" />\n  <h3 style=\"margin:0 0 8px\">Draft Preview</h3>\n  <pre style=\"white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:6px\">${$json.gmail_draft_payload?.body || \"No draft body\"}</pre>\n</div>\n` }}",
+          "options": {}
+        },
+        "id": "f0848f77-f9fd-4ac6-b9d8-2f97c6f287cc",
+        "name": "Notify QA Reviewer",
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          -480,
+          272
+        ],
+        "webhookId": "04649017-3f89-45c2-9512-4383c52e7e81",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "pwMK2jDEWY5arMX3",
+            "name": "Gmail account"
+          }
+        },
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 181755346,
+            "mode": "list",
+            "cachedResultName": "Proposals",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=181755346"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "proposal_subject": "={{ $json.gmail_draft_payload.subject }}",
+              "proposal_body_markdown": "={{ $json.gmail_draft_payload.body }}",
+              "gmail_draft_id": "={{ $json.gmail_draft_payload.gmail_draft_id }}",
+              "status": "={{ $json.status }}",
+              "updated_at_utc": "={{ $now.toISO() }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "proposal_subject",
+                "displayName": "proposal_subject",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "proposal_body_markdown",
+                "displayName": "proposal_body_markdown",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "gmail_draft_id",
+                "displayName": "gmail_draft_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "updated_at_utc",
+                "displayName": "updated_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "f9bb01ff-76e3-4f4e-97de-ab9ea771d848",
+        "name": "Google Sheets Proposals Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -240,
+          272
+        ],
+        "retryOnFail": true,
+        "waitBetweenTries": 2000,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "w1FE4HWHsATg3hfr",
+            "mode": "list",
+            "cachedResultName": "human-qa-and-approval",
+            "cachedResultUrl": "/workflow/w1FE4HWHsATg3hfr"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+              "founder_approver_email": "={{ $json.founder_approver_email }}",
+              "status": "={{ $json.status }}",
+              "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+              "qa_status": "={{ $json.qa_status }}",
+              "founder_status": "={{ $json.founder_status }}",
+              "reviewer": "={{ $json.reviewer }}",
+              "review_notes": "={{ $json.review_notes }}",
+              "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+              "approved_at_utc": "={{ $json.approved_at_utc }}",
+              "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+              "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_reviewer_email",
+                "displayName": "qa_reviewer_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_approver_email",
+                "displayName": "founder_approver_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_ready_at_utc",
+                "displayName": "draft_ready_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_status",
+                "displayName": "qa_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_status",
+                "displayName": "founder_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewer",
+                "displayName": "reviewer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "review_notes",
+                "displayName": "review_notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewed_at_utc",
+                "displayName": "reviewed_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "approved_at_utc",
+                "displayName": "approved_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "proposal_section_draft",
+                "displayName": "proposal_section_draft",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              },
+              {
+                "id": "gmail_draft_payload",
+                "displayName": "gmail_draft_payload",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "7a3176d8-5f6c-4a2d-a455-be3ec024ef46",
+        "name": "Call human-qa-and-approval",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          32,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "case_id"
+              },
+              {
+                "name": "client_name"
+              },
+              {
+                "name": "client_email"
+              },
+              {
+                "name": "website_url"
+              },
+              {
+                "name": "qa_reviewer_email"
+              },
+              {
+                "name": "founder_approver_email"
+              },
+              {
+                "name": "status"
+              },
+              {
+                "name": "ingested_at_utc"
+              },
+              {
+                "name": "draft_due_at_utc"
+              },
+              {
+                "name": "discovery_brief",
+                "type": "object"
+              },
+              {
+                "name": "research_dossier",
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "id": "5779798b-4726-4851-8ce9-1629e1fc5a52",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1024,
+          464
+        ]
+      }
+    ],
+    "connections": {
+      "Proposal Composer Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Proposal Sections",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Proposal Sections": {
+        "main": [
+          [
+            {
+              "node": "Notify QA Reviewer",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Google Sheets Proposals Append",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Call human-qa-and-approval",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Build Proposal Sections",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-08T15:20:55.231Z",
+        "id": 130,
+        "workflowId": "fdGPPZlrGjwCkWH8",
+        "versionId": "5c7bc1ef-f462-40a5-b6fd-9862b2e1176b",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-08T15:20:56.382Z",
+        "id": 131,
+        "workflowId": "fdGPPZlrGjwCkWH8",
+        "versionId": "5c7bc1ef-f462-40a5-b6fd-9862b2e1176b",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

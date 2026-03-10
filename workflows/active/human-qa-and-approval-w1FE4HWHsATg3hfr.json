@@ -1,0 +1,1543 @@
+{
+  "updatedAt": "2026-03-08T15:21:24.227Z",
+  "createdAt": "2026-03-07T10:32:50.295Z",
+  "id": "w1FE4HWHsATg3hfr",
+  "name": "human-qa-and-approval",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "human-qa-and-approval",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e16c05f7-c0b7-4cb3-a8d5-e26f244b12bd",
+      "name": "Human QA Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1080,
+        260
+      ],
+      "webhookId": "775636ce-9805-4d60-897b-7d3918af4a5c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const qa = ($json.qa_status || 'APPROVAL_PENDING').toUpperCase();\nconst founder = ($json.founder_status || 'PENDING').toUpperCase();\n\nreturn [{\n  json: {\n    ...$json,\n    qa_status: qa,\n    founder_status: founder,\n    status: qa === 'REVISION_REQUESTED' ? 'REVISION_REQUESTED' : (qa === 'APPROVED' ? 'APPROVAL_PENDING' : 'QA_IN_REVIEW')\n  }\n}];"
+      },
+      "id": "526ba969-e71f-4276-8d89-b267c0054380",
+      "name": "Normalize QA Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -840,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.qa_status}}",
+              "operation": "equal",
+              "value2": "REVISION_REQUESTED"
+            }
+          ]
+        }
+      },
+      "id": "ddf4c55f-6f4f-439a-a9b6-3d6b89f587ec",
+      "name": "QA Needs Revision?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fdGPPZlrGjwCkWH8",
+          "mode": "list",
+          "cachedResultName": "proposal-composer",
+          "cachedResultUrl": "/workflow/fdGPPZlrGjwCkWH8"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+            "founder_approver_email": "={{ $json.founder_approver_email }}",
+            "status": "={{ $json.status }}",
+            "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+            "qa_status": "={{ $json.qa_status }}",
+            "founder_status": "={{ $json.founder_status }}",
+            "reviewer": "={{ $json.reviewer }}",
+            "review_notes": "={{ $json.review_notes }}",
+            "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+            "approved_at_utc": "={{ $json.approved_at_utc }}",
+            "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+            "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_reviewer_email",
+              "displayName": "qa_reviewer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_approver_email",
+              "displayName": "founder_approver_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_ready_at_utc",
+              "displayName": "draft_ready_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_status",
+              "displayName": "qa_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_status",
+              "displayName": "founder_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewer",
+              "displayName": "reviewer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewed_at_utc",
+              "displayName": "reviewed_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approved_at_utc",
+              "displayName": "approved_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "proposal_section_draft",
+              "displayName": "proposal_section_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "gmail_draft_payload",
+              "displayName": "gmail_draft_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "39f0a6cb-f8ee-488a-a788-a791f5f96eca",
+      "name": "Send Back to Composer",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -380,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.founder_status}}",
+              "operation": "equal",
+              "value2": "APPROVED"
+            }
+          ]
+        }
+      },
+      "id": "c2c16712-09a7-4f9e-96d8-c705ca5c55dc",
+      "name": "Founder Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "x3SEMzP1S94toYGp",
+          "mode": "list",
+          "cachedResultName": "gmail-send-and-followup",
+          "cachedResultUrl": "/workflow/x3SEMzP1S94toYGp"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "status": "={{ $json.status }}",
+            "qa_status": "={{ $json.qa_status }}",
+            "founder_status": "={{ $json.founder_status }}",
+            "reviewer": "={{ $json.reviewer }}",
+            "review_notes": "={{ $json.review_notes }}",
+            "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+            "approved_at_utc": "={{ $json.approved_at_utc }}",
+            "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+            "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_status",
+              "displayName": "qa_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_status",
+              "displayName": "founder_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewer",
+              "displayName": "reviewer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "reviewed_at_utc",
+              "displayName": "reviewed_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "approved_at_utc",
+              "displayName": "approved_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "proposal_section_draft",
+              "displayName": "proposal_section_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "gmail_draft_payload",
+              "displayName": "gmail_draft_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "67a9f7d8-eb26-49f3-a9de-cd0af77f9adb",
+      "name": "Call gmail-send-and-followup",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 499441600,
+          "mode": "list",
+          "cachedResultName": "QA_Reviews",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=499441600"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "qa_status": "={{ $json.qa_status || \"PENDING\" }}",
+            "reviewer": "={{ $json.qa_reviewer_email || \"ramsey@intellom8.com\" }}",
+            "review_notes": "={{ $json.review_notes || \"Awaiting founder decision\" }}",
+            "reviewed_at_utc": "={{ $now.toISO() }}",
+            "founder_status": "={{ $json.founder_status || \"PENDING\" }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qa_status",
+              "displayName": "qa_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reviewer",
+              "displayName": "reviewer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "review_notes",
+              "displayName": "review_notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reviewed_at_utc",
+              "displayName": "reviewed_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "founder_status",
+              "displayName": "founder_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b82ec21e-99ac-43c1-a973-d9e590a04f7b",
+      "name": "Google Sheets QA Reviews Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -120,
+        440
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "case_id"
+            },
+            {
+              "name": "client_name"
+            },
+            {
+              "name": "client_email"
+            },
+            {
+              "name": "qa_reviewer_email"
+            },
+            {
+              "name": "founder_approver_email"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "draft_ready_at_utc"
+            },
+            {
+              "name": "qa_status"
+            },
+            {
+              "name": "founder_status"
+            },
+            {
+              "name": "reviewer"
+            },
+            {
+              "name": "review_notes"
+            },
+            {
+              "name": "reviewed_at_utc"
+            },
+            {
+              "name": "approved_at_utc"
+            },
+            {
+              "name": "proposal_section_draft",
+              "type": "object"
+            },
+            {
+              "name": "gmail_draft_payload",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "a5afe56b-0934-4d88-a6a5-7fe5fdba2bd6",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1020,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "qa-approval-action",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1f68c798-4fe2-48fe-8e55-642a67798466",
+      "name": "QA Approval Link Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1240,
+        560
+      ],
+      "webhookId": "af7c2c19-45eb-4991-a835-e0e686b4d4c2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const q = $json.query || $json;\nconst action = String(q.action || '').toLowerCase();\nconst caseId = q.case_id || q.caseId || '';\nif (!caseId) throw new Error('Missing case_id');\nconst notes = q.notes || '';\nlet qa = 'APPROVAL_PENDING';\nlet founder = 'PENDING';\nif (action === 'approve') { qa = 'APPROVED'; founder = 'APPROVED'; }\nelse if (action === 'revise' || action === 'revision' || action === 'changes') { qa = 'REVISION_REQUESTED'; founder = 'REVISION_REQUESTED'; }\nelse throw new Error('Invalid action. Use approve|revise');\nreturn [{ json: {\n  case_id: caseId,\n  qa_status: qa,\n  founder_status: founder,\n  reviewer: 'ramsey@intellom8.com',\n  qa_reviewer_email: 'ramsey@intellom8.com',\n  founder_approver_email: 'ramsey@intellom8.com',\n  review_notes: notes || (qa === 'APPROVED' ? 'Approved via email button' : 'Revision requested via email button')\n}}];"
+      },
+      "id": "3d7c4e9a-4e3e-47ef-9ab0-80f3c34bc5e7",
+      "name": "Map Approval Link Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1020,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "Human QA Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize QA Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize QA Status": {
+      "main": [
+        [
+          {
+            "node": "QA Needs Revision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Needs Revision?": {
+      "main": [
+        [
+          {
+            "node": "Founder Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Back to Composer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Founder Approved?": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets QA Reviews Append",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call gmail-send-and-followup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Normalize QA Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Approval Link Webhook": {
+      "main": [
+        [
+          {
+            "node": "Map Approval Link Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Approval Link Params": {
+      "main": [
+        [
+          {
+            "node": "Normalize QA Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "e204cafb-4ddd-4628-8edd-378f40b654cb",
+  "activeVersionId": "e204cafb-4ddd-4628-8edd-378f40b654cb",
+  "versionCounter": 44,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:50.295Z",
+      "createdAt": "2026-03-07T10:32:50.295Z",
+      "role": "workflow:owner",
+      "workflowId": "w1FE4HWHsATg3hfr",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-08T15:21:24.229Z",
+    "createdAt": "2026-03-08T15:21:24.229Z",
+    "versionId": "e204cafb-4ddd-4628-8edd-378f40b654cb",
+    "workflowId": "w1FE4HWHsATg3hfr",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "human-qa-and-approval",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "e16c05f7-c0b7-4cb3-a8d5-e26f244b12bd",
+        "name": "Human QA Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1080,
+          260
+        ],
+        "webhookId": "775636ce-9805-4d60-897b-7d3918af4a5c"
+      },
+      {
+        "parameters": {
+          "jsCode": "const qa = ($json.qa_status || 'APPROVAL_PENDING').toUpperCase();\nconst founder = ($json.founder_status || 'PENDING').toUpperCase();\n\nreturn [{\n  json: {\n    ...$json,\n    qa_status: qa,\n    founder_status: founder,\n    status: qa === 'REVISION_REQUESTED' ? 'REVISION_REQUESTED' : (qa === 'APPROVED' ? 'APPROVAL_PENDING' : 'QA_IN_REVIEW')\n  }\n}];"
+        },
+        "id": "526ba969-e71f-4276-8d89-b267c0054380",
+        "name": "Normalize QA Status",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -840,
+          260
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.qa_status}}",
+                "operation": "equal",
+                "value2": "REVISION_REQUESTED"
+              }
+            ]
+          }
+        },
+        "id": "ddf4c55f-6f4f-439a-a9b6-3d6b89f587ec",
+        "name": "QA Needs Revision?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -620,
+          260
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "fdGPPZlrGjwCkWH8",
+            "mode": "list",
+            "cachedResultName": "proposal-composer",
+            "cachedResultUrl": "/workflow/fdGPPZlrGjwCkWH8"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+              "founder_approver_email": "={{ $json.founder_approver_email }}",
+              "status": "={{ $json.status }}",
+              "draft_ready_at_utc": "={{ $json.draft_ready_at_utc }}",
+              "qa_status": "={{ $json.qa_status }}",
+              "founder_status": "={{ $json.founder_status }}",
+              "reviewer": "={{ $json.reviewer }}",
+              "review_notes": "={{ $json.review_notes }}",
+              "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+              "approved_at_utc": "={{ $json.approved_at_utc }}",
+              "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+              "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_reviewer_email",
+                "displayName": "qa_reviewer_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_approver_email",
+                "displayName": "founder_approver_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_ready_at_utc",
+                "displayName": "draft_ready_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_status",
+                "displayName": "qa_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_status",
+                "displayName": "founder_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewer",
+                "displayName": "reviewer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "review_notes",
+                "displayName": "review_notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewed_at_utc",
+                "displayName": "reviewed_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "approved_at_utc",
+                "displayName": "approved_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "proposal_section_draft",
+                "displayName": "proposal_section_draft",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              },
+              {
+                "id": "gmail_draft_payload",
+                "displayName": "gmail_draft_payload",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "39f0a6cb-f8ee-488a-a788-a791f5f96eca",
+        "name": "Send Back to Composer",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -380,
+          140
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "string": [
+              {
+                "value1": "={{$json.founder_status}}",
+                "operation": "equal",
+                "value2": "APPROVED"
+              }
+            ]
+          }
+        },
+        "id": "c2c16712-09a7-4f9e-96d8-c705ca5c55dc",
+        "name": "Founder Approved?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          -380,
+          360
+        ]
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "x3SEMzP1S94toYGp",
+            "mode": "list",
+            "cachedResultName": "gmail-send-and-followup",
+            "cachedResultUrl": "/workflow/x3SEMzP1S94toYGp"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "status": "={{ $json.status }}",
+              "qa_status": "={{ $json.qa_status }}",
+              "founder_status": "={{ $json.founder_status }}",
+              "reviewer": "={{ $json.reviewer }}",
+              "review_notes": "={{ $json.review_notes }}",
+              "reviewed_at_utc": "={{ $json.reviewed_at_utc }}",
+              "approved_at_utc": "={{ $json.approved_at_utc }}",
+              "proposal_section_draft": "={{ $json.proposal_section_draft }}",
+              "gmail_draft_payload": "={{ $json.gmail_draft_payload }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_status",
+                "displayName": "qa_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_status",
+                "displayName": "founder_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewer",
+                "displayName": "reviewer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "review_notes",
+                "displayName": "review_notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "reviewed_at_utc",
+                "displayName": "reviewed_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "approved_at_utc",
+                "displayName": "approved_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "proposal_section_draft",
+                "displayName": "proposal_section_draft",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              },
+              {
+                "id": "gmail_draft_payload",
+                "displayName": "gmail_draft_payload",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "67a9f7d8-eb26-49f3-a9de-cd0af77f9adb",
+        "name": "Call gmail-send-and-followup",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -120,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 499441600,
+            "mode": "list",
+            "cachedResultName": "QA_Reviews",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=499441600"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "qa_status": "={{ $json.qa_status || \"PENDING\" }}",
+              "reviewer": "={{ $json.qa_reviewer_email || \"ramsey@intellom8.com\" }}",
+              "review_notes": "={{ $json.review_notes || \"Awaiting founder decision\" }}",
+              "reviewed_at_utc": "={{ $now.toISO() }}",
+              "founder_status": "={{ $json.founder_status || \"PENDING\" }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "qa_status",
+                "displayName": "qa_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "reviewer",
+                "displayName": "reviewer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "review_notes",
+                "displayName": "review_notes",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "reviewed_at_utc",
+                "displayName": "reviewed_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "founder_status",
+                "displayName": "founder_status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "b82ec21e-99ac-43c1-a973-d9e590a04f7b",
+        "name": "Google Sheets QA Reviews Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -120,
+          440
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "case_id"
+              },
+              {
+                "name": "client_name"
+              },
+              {
+                "name": "client_email"
+              },
+              {
+                "name": "qa_reviewer_email"
+              },
+              {
+                "name": "founder_approver_email"
+              },
+              {
+                "name": "status"
+              },
+              {
+                "name": "draft_ready_at_utc"
+              },
+              {
+                "name": "qa_status"
+              },
+              {
+                "name": "founder_status"
+              },
+              {
+                "name": "reviewer"
+              },
+              {
+                "name": "review_notes"
+              },
+              {
+                "name": "reviewed_at_utc"
+              },
+              {
+                "name": "approved_at_utc"
+              },
+              {
+                "name": "proposal_section_draft",
+                "type": "object"
+              },
+              {
+                "name": "gmail_draft_payload",
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "id": "a5afe56b-0934-4d88-a6a5-7fe5fdba2bd6",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1020,
+          460
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "GET",
+          "path": "qa-approval-action",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "1f68c798-4fe2-48fe-8e55-642a67798466",
+        "name": "QA Approval Link Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -1240,
+          560
+        ],
+        "webhookId": "af7c2c19-45eb-4991-a835-e0e686b4d4c2"
+      },
+      {
+        "parameters": {
+          "jsCode": "const q = $json.query || $json;\nconst action = String(q.action || '').toLowerCase();\nconst caseId = q.case_id || q.caseId || '';\nif (!caseId) throw new Error('Missing case_id');\nconst notes = q.notes || '';\nlet qa = 'APPROVAL_PENDING';\nlet founder = 'PENDING';\nif (action === 'approve') { qa = 'APPROVED'; founder = 'APPROVED'; }\nelse if (action === 'revise' || action === 'revision' || action === 'changes') { qa = 'REVISION_REQUESTED'; founder = 'REVISION_REQUESTED'; }\nelse throw new Error('Invalid action. Use approve|revise');\nreturn [{ json: {\n  case_id: caseId,\n  qa_status: qa,\n  founder_status: founder,\n  reviewer: 'ramsey@intellom8.com',\n  qa_reviewer_email: 'ramsey@intellom8.com',\n  founder_approver_email: 'ramsey@intellom8.com',\n  review_notes: notes || (qa === 'APPROVED' ? 'Approved via email button' : 'Revision requested via email button')\n}}];"
+        },
+        "id": "3d7c4e9a-4e3e-47ef-9ab0-80f3c34bc5e7",
+        "name": "Map Approval Link Params",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -1020,
+          560
+        ]
+      }
+    ],
+    "connections": {
+      "Human QA Webhook": {
+        "main": [
+          [
+            {
+              "node": "Normalize QA Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Normalize QA Status": {
+        "main": [
+          [
+            {
+              "node": "QA Needs Revision?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "QA Needs Revision?": {
+        "main": [
+          [
+            {
+              "node": "Founder Approved?",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Send Back to Composer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Founder Approved?": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets QA Reviews Append",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Call gmail-send-and-followup",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Normalize QA Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "QA Approval Link Webhook": {
+        "main": [
+          [
+            {
+              "node": "Map Approval Link Params",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Map Approval Link Params": {
+        "main": [
+          [
+            {
+              "node": "Normalize QA Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-08T15:21:24.382Z",
+        "id": 132,
+        "workflowId": "w1FE4HWHsATg3hfr",
+        "versionId": "e204cafb-4ddd-4628-8edd-378f40b654cb",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-08T15:21:25.570Z",
+        "id": 133,
+        "workflowId": "w1FE4HWHsATg3hfr",
+        "versionId": "e204cafb-4ddd-4628-8edd-378f40b654cb",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

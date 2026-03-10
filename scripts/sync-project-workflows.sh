@@ -15,7 +15,11 @@ if [[ ! -f "${ALLOWLIST_FILE}" ]]; then
   exit 1
 fi
 
-mapfile -t IDS < <(grep -vE '^\s*#|^\s*$' "${ALLOWLIST_FILE}")
+IDS=()
+while IFS= read -r id; do
+  [[ -z "${id}" ]] && continue
+  IDS+=("${id}")
+done < <(grep -vE '^\s*#|^\s*$' "${ALLOWLIST_FILE}")
 if [[ "${#IDS[@]}" -eq 0 ]]; then
   echo "No workflow IDs found in ${ALLOWLIST_FILE}"
   exit 1

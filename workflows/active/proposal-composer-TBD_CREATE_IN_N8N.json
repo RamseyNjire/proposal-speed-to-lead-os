@@ -1,0 +1,204 @@
+{
+  "name": "proposal-composer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "proposal-composer",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "2cfd5930-08a4-45be-8764-5ddf72d4fb1a",
+      "name": "Proposal Composer Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1020,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $json.discovery_brief || {};\nconst dossier = $json.research_dossier || {};\nconst client = $json.client_name || 'Client';\nconst problem = brief.problem_summary || 'Key growth bottlenecks identified during discovery.';\nconst goals = brief.goal_summary || 'Define and execute a profitable growth system.';\n\nconst sectionTitles = [\n  'Executive Summary',\n  'Scope of Services',\n  'Strategy and Approach',\n  'Budget and Pricing',\n  'Terms and Conditions'\n];\n\nconst sections = sectionTitles.map((title) => ({\n  title,\n  content: `TODO: Write ${title} for ${client} using transcript insights, goals, and research findings.`\n}));\n\nconst body = [\n  `Marketing Proposal for ${client}`,\n  '',\n  ...sections.flatMap((s) => [`## ${s.title}`, s.content, ''])\n].join('\\n');\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'DRAFT_READY',\n    proposal_section_draft: {\n      case_id: $json.case_id,\n      sections,\n      draft_body_markdown: body\n    },\n    gmail_draft_payload: {\n      case_id: $json.case_id,\n      subject: `Marketing Proposal for ${client}`,\n      body\n    }\n  }\n}];"
+      },
+      "id": "99fc2d45-03c6-48ad-86f0-bf79d7692208",
+      "name": "Build Proposal Sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -740,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Gmail 'Create Draft' node.\n// Expected outputs: gmail_draft_id, thread_id.\nreturn items.map((item) => ({\n  json: {\n    ...item.json,\n    gmail_draft_payload: {\n      ...item.json.gmail_draft_payload,\n      gmail_draft_id: item.json.gmail_draft_payload.gmail_draft_id || 'TODO_GMAIL_DRAFT_ID'\n    }\n  }\n}));"
+      },
+      "id": "f0848f77-f9fd-4ac6-b9d8-2f97c6f287cc",
+      "name": "Gmail Create Draft (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Replace this node with Google Sheets append/update into Proposals tab.\nreturn items;"
+      },
+      "id": "f9bb01ff-76e3-4f4e-97de-ab9ea771d848",
+      "name": "Google Sheets Proposals Upsert (TODO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ ($env.N8N_BASE_URL || '').replace(/\\/$/, '') + '/webhook/human-qa-and-approval' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "7a3176d8-5f6c-4a2d-a455-be3ec024ef46",
+      "name": "Call human-qa-and-approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        260
+      ]
+    }
+  ],
+  "connections": {
+    "Proposal Composer Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Proposal Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Proposal Sections": {
+      "main": [
+        [
+          {
+            "node": "Gmail Create Draft (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Create Draft (TODO)": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Proposals Upsert (TODO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Proposals Upsert (TODO)": {
+      "main": [
+        [
+          {
+            "node": "Call human-qa-and-approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00000000-0000-0000-0000-000000000004",
+  "meta": null,
+  "id": "TBD_CREATE_IN_N8N",
+  "tags": [],
+  "pinData": {
+    "Proposal Composer Webhook": [
+      {
+        "json": {
+          "case_id": "case-call-2026-03-05-glossier",
+          "client_name": "Glossier",
+          "status": "RESEARCH_IN_PROGRESS",
+          "qa_reviewer_email": "qa@pinnaclemedia.example",
+          "founder_approver_email": "founder@pinnaclemedia.example",
+          "discovery_brief": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "problem_summary": "Strong organic brand equity is not translating into scalable, consistent paid performance and execution cadence.",
+            "goal_summary": "In 90 days, establish profitable paid growth and improve monthly revenue trajectory from $180K toward $400K.",
+            "constraints": [
+              "Lean execution team after restructuring",
+              "Need to preserve brand voice and trust"
+            ],
+            "key_metrics": {
+              "monthly_revenue_current": 180000,
+              "monthly_revenue_goal_low": 800000,
+              "monthly_revenue_goal_high": 1000000,
+              "monthly_revenue_90d_target": 400000,
+              "site_conversion_rate": 1.8,
+              "instagram_followers": 2800000,
+              "tiktok_followers": 400000,
+              "creative_roas_best": 4.1,
+              "sms_roas_best": 18.5,
+              "email_revenue_share_peak_pct": 30,
+              "aov_low": 52,
+              "aov_high": 68
+            },
+            "competitors": [
+              "Rhode",
+              "Tatcha",
+              "Ereskin",
+              "The Ordinary",
+              "Summer Fridays",
+              "Rare Beauty"
+            ]
+          },
+          "research_dossier": {
+            "case_id": "case-call-2026-03-05-glossier",
+            "client_site_findings": [
+              "Community-led brand voice is clear and differentiated through editorial heritage.",
+              "Paid landing page journeys can better align with trust-first creative angles and conversion intent."
+            ],
+            "competitor_findings": [
+              {
+                "name": "Rhode",
+                "messaging_hook": "Celebrity-backed minimalist skincare positioning",
+                "landing_page_angle": "Lifestyle-led product drops and social urgency"
+              },
+              {
+                "name": "The Ordinary",
+                "messaging_hook": "Ingredient transparency and affordability",
+                "landing_page_angle": "Education-first purchase path with clear claims"
+              },
+              {
+                "name": "Rare Beauty",
+                "messaging_hook": "Community-first storytelling and mission-led brand trust",
+                "landing_page_angle": "Creator/social proof + product utility pairing"
+              }
+            ],
+            "meta_ad_library_findings": [
+              "Trust-first UGC and social proof hooks outperform hard-sell creative for beauty audiences.",
+              "Retention channels amplify paid efficiency when flows and campaign cadences are consistent."
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

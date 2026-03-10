@@ -1,0 +1,848 @@
+{
+  "updatedAt": "2026-03-07T12:25:29.384Z",
+  "createdAt": "2026-03-07T10:32:53.189Z",
+  "id": "Edwfev3WfHY72DP7",
+  "name": "research-enricher",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "research-enricher",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "6cd514f6-7246-48db-be80-4fbe1f311e24",
+      "name": "Research Enricher Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -976,
+        272
+      ],
+      "webhookId": "dcb109d2-5999-4efa-8342-6507ed011141"
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $json.discovery_brief || {};\nconst competitors = Array.isArray(brief.competitors) ? brief.competitors : [];\n\nconst competitorFindings = competitors.map((name) => ({\n  name,\n  messaging_hook: `${name}: primary hook and offer pattern captured`,\n  landing_page_angle: `${name}: landing page value proposition and CTA pattern captured`\n}));\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'RESEARCH_IN_PROGRESS',\n    research_dossier: {\n      case_id: $json.case_id,\n      client_site_findings: [\n        'Homepage offer and value proposition summarized',\n        'Primary funnel friction points summarized from transcript context'\n      ],\n      competitor_findings: competitorFindings,\n      meta_ad_library_findings: [\n        'Top recurring hooks captured',\n        'Top creative formats captured',\n        'Offer and promotion pattern summary captured'\n      ]\n    }\n  }\n}];"
+      },
+      "id": "57688fef-acd9-49b3-ba91-0cc8482fa5cd",
+      "name": "Build Research Dossier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+          "mode": "list",
+          "cachedResultName": "Test Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1780896976,
+          "mode": "list",
+          "cachedResultName": "Research",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=1780896976"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_site_findings_json": "={{ JSON.stringify($json.research_dossier.client_site_findings || []) }}",
+            "competitor_findings_json": "={{ JSON.stringify($json.research_dossier.competitor_findings || []) }}",
+            "meta_ad_library_findings_json": "={{ JSON.stringify($json.research_dossier.meta_ad_library_findings || []) }}",
+            "updated_at_utc": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "client_site_findings_json",
+              "displayName": "client_site_findings_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "competitor_findings_json",
+              "displayName": "competitor_findings_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "meta_ad_library_findings_json",
+              "displayName": "meta_ad_library_findings_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at_utc",
+              "displayName": "updated_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "18863595-c1de-4cbf-845e-2e3dd327df8b",
+      "name": "Google Sheets Research Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -464,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LEFQV5TdhufxA29x",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fdGPPZlrGjwCkWH8",
+          "mode": "list",
+          "cachedResultName": "proposal-composer",
+          "cachedResultUrl": "/workflow/fdGPPZlrGjwCkWH8"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "case_id": "={{ $json.case_id }}",
+            "client_name": "={{ $json.client_name }}",
+            "client_email": "={{ $json.client_email }}",
+            "website_url": "={{ $json.website_url }}",
+            "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+            "founder_approver_email": "={{ $json.founder_approver_email }}",
+            "status": "={{ $json.status }}",
+            "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+            "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+            "discovery_brief": "={{ $json.discovery_brief }}",
+            "research_dossier": "={{ $json.research_dossier }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "case_id",
+              "displayName": "case_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_name",
+              "displayName": "client_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "client_email",
+              "displayName": "client_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "website_url",
+              "displayName": "website_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qa_reviewer_email",
+              "displayName": "qa_reviewer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "founder_approver_email",
+              "displayName": "founder_approver_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "ingested_at_utc",
+              "displayName": "ingested_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "draft_due_at_utc",
+              "displayName": "draft_due_at_utc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "discovery_brief",
+              "displayName": "discovery_brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "research_dossier",
+              "displayName": "research_dossier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "3243de79-7396-46f7-8928-0cb059f1686a",
+      "name": "Call proposal-composer",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "case_id"
+            },
+            {
+              "name": "client_name"
+            },
+            {
+              "name": "client_email"
+            },
+            {
+              "name": "website_url"
+            },
+            {
+              "name": "qa_reviewer_email"
+            },
+            {
+              "name": "founder_approver_email"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "ingested_at_utc"
+            },
+            {
+              "name": "draft_due_at_utc"
+            },
+            {
+              "name": "discovery_brief",
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "id": "2380cdd2-bb60-4e78-b4e4-d96357aca3cb",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        464
+      ]
+    }
+  ],
+  "connections": {
+    "Research Enricher Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Research Dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Research Dossier": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Research Append",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call proposal-composer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Build Research Dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "case_id": "case-call-2026-03-07-allbirds-automation"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "d8269783-91b7-44a2-8238-c133a1e68636",
+  "activeVersionId": "d8269783-91b7-44a2-8238-c133a1e68636",
+  "versionCounter": 36,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-03-07T10:32:53.189Z",
+      "createdAt": "2026-03-07T10:32:53.189Z",
+      "role": "workflow:owner",
+      "workflowId": "Edwfev3WfHY72DP7",
+      "projectId": "6a0cb9yaqblEkuTW",
+      "project": {
+        "updatedAt": "2025-02-28T09:18:32.825Z",
+        "createdAt": "2025-02-28T06:01:14.727Z",
+        "id": "6a0cb9yaqblEkuTW",
+        "name": "Ramsey Njire <ramsey@intellom8.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+        "projectRelations": [
+          {
+            "updatedAt": "2025-02-28T06:01:14.727Z",
+            "createdAt": "2025-02-28T06:01:14.727Z",
+            "userId": "bdcb690b-b545-41c5-9a51-e08141268f98",
+            "projectId": "6a0cb9yaqblEkuTW",
+            "user": {
+              "updatedAt": "2026-03-09T04:18:59.796Z",
+              "createdAt": "2025-02-28T06:01:11.966Z",
+              "id": "bdcb690b-b545-41c5-9a51-e08141268f98",
+              "email": "ramsey@intellom8.com",
+              "firstName": "Ramsey",
+              "lastName": "Njire",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2025-02-28T09:19:12.731Z",
+                "personalization_survey_n8n_version": "1.80.4",
+                "companyType": "personal",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": true,
+                "easyAIWorkflowOnboarded": true,
+                "firstSuccessfulWorkflowId": "2BiOahKQyzE59Z0J",
+                "userActivatedAt": 1756561670117,
+                "npsSurvey": {
+                  "responded": true,
+                  "lastShownAt": 1764769306122
+                },
+                "dismissedCallouts": {
+                  "aiAgentStarterCallout": true
+                }
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-03-09",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-03-07T12:25:29.384Z",
+    "createdAt": "2026-03-07T12:25:29.384Z",
+    "versionId": "d8269783-91b7-44a2-8238-c133a1e68636",
+    "workflowId": "Edwfev3WfHY72DP7",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "research-enricher",
+          "responseMode": "lastNode",
+          "options": {}
+        },
+        "id": "6cd514f6-7246-48db-be80-4fbe1f311e24",
+        "name": "Research Enricher Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -976,
+          272
+        ],
+        "webhookId": "dcb109d2-5999-4efa-8342-6507ed011141"
+      },
+      {
+        "parameters": {
+          "jsCode": "const brief = $json.discovery_brief || {};\nconst competitors = Array.isArray(brief.competitors) ? brief.competitors : [];\n\nconst competitorFindings = competitors.map((name) => ({\n  name,\n  messaging_hook: `${name}: primary hook and offer pattern captured`,\n  landing_page_angle: `${name}: landing page value proposition and CTA pattern captured`\n}));\n\nreturn [{\n  json: {\n    ...$json,\n    status: 'RESEARCH_IN_PROGRESS',\n    research_dossier: {\n      case_id: $json.case_id,\n      client_site_findings: [\n        'Homepage offer and value proposition summarized',\n        'Primary funnel friction points summarized from transcript context'\n      ],\n      competitor_findings: competitorFindings,\n      meta_ad_library_findings: [\n        'Top recurring hooks captured',\n        'Top creative formats captured',\n        'Offer and promotion pattern summary captured'\n      ]\n    }\n  }\n}];"
+        },
+        "id": "57688fef-acd9-49b3-ba91-0cc8482fa5cd",
+        "name": "Build Research Dossier",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -720,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM",
+            "mode": "list",
+            "cachedResultName": "Test Sheet",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 1780896976,
+            "mode": "list",
+            "cachedResultName": "Research",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SG_oFl8fFwQgZ-Q-MnaRCHrklVZLxJWz4M3UCX9pdUM/edit#gid=1780896976"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_site_findings_json": "={{ JSON.stringify($json.research_dossier.client_site_findings || []) }}",
+              "competitor_findings_json": "={{ JSON.stringify($json.research_dossier.competitor_findings || []) }}",
+              "meta_ad_library_findings_json": "={{ JSON.stringify($json.research_dossier.meta_ad_library_findings || []) }}",
+              "updated_at_utc": "={{ $now.toISO() }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "client_site_findings_json",
+                "displayName": "client_site_findings_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "competitor_findings_json",
+                "displayName": "competitor_findings_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "meta_ad_library_findings_json",
+                "displayName": "meta_ad_library_findings_json",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "updated_at_utc",
+                "displayName": "updated_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "id": "18863595-c1de-4cbf-845e-2e3dd327df8b",
+        "name": "Google Sheets Research Append",
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -464,
+          272
+        ],
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "LEFQV5TdhufxA29x",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "fdGPPZlrGjwCkWH8",
+            "mode": "list",
+            "cachedResultName": "proposal-composer",
+            "cachedResultUrl": "/workflow/fdGPPZlrGjwCkWH8"
+          },
+          "workflowInputs": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "case_id": "={{ $json.case_id }}",
+              "client_name": "={{ $json.client_name }}",
+              "client_email": "={{ $json.client_email }}",
+              "website_url": "={{ $json.website_url }}",
+              "qa_reviewer_email": "={{ $json.qa_reviewer_email }}",
+              "founder_approver_email": "={{ $json.founder_approver_email }}",
+              "status": "={{ $json.status }}",
+              "ingested_at_utc": "={{ $json.ingested_at_utc }}",
+              "draft_due_at_utc": "={{ $json.draft_due_at_utc }}",
+              "discovery_brief": "={{ $json.discovery_brief }}",
+              "research_dossier": "={{ $json.research_dossier }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "case_id",
+                "displayName": "case_id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_name",
+                "displayName": "client_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "client_email",
+                "displayName": "client_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "website_url",
+                "displayName": "website_url",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "qa_reviewer_email",
+                "displayName": "qa_reviewer_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "founder_approver_email",
+                "displayName": "founder_approver_email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "ingested_at_utc",
+                "displayName": "ingested_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "draft_due_at_utc",
+                "displayName": "draft_due_at_utc",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "string",
+                "removed": false
+              },
+              {
+                "id": "discovery_brief",
+                "displayName": "discovery_brief",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              },
+              {
+                "id": "research_dossier",
+                "displayName": "research_dossier",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "canBeUsedToMatch": true,
+                "type": "object",
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": true
+          },
+          "options": {}
+        },
+        "id": "3243de79-7396-46f7-8928-0cb059f1686a",
+        "name": "Call proposal-composer",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.2,
+        "position": [
+          -224,
+          272
+        ]
+      },
+      {
+        "parameters": {
+          "workflowInputs": {
+            "values": [
+              {
+                "name": "case_id"
+              },
+              {
+                "name": "client_name"
+              },
+              {
+                "name": "client_email"
+              },
+              {
+                "name": "website_url"
+              },
+              {
+                "name": "qa_reviewer_email"
+              },
+              {
+                "name": "founder_approver_email"
+              },
+              {
+                "name": "status"
+              },
+              {
+                "name": "ingested_at_utc"
+              },
+              {
+                "name": "draft_due_at_utc"
+              },
+              {
+                "name": "discovery_brief",
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "id": "2380cdd2-bb60-4e78-b4e4-d96357aca3cb",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -1024,
+          464
+        ]
+      }
+    ],
+    "connections": {
+      "Research Enricher Webhook": {
+        "main": [
+          [
+            {
+              "node": "Build Research Dossier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Research Dossier": {
+        "main": [
+          [
+            {
+              "node": "Google Sheets Research Append",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Call proposal-composer",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Build Research Dossier",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ramsey Njire",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-03-07T12:25:29.522Z",
+        "id": 117,
+        "workflowId": "Edwfev3WfHY72DP7",
+        "versionId": "d8269783-91b7-44a2-8238-c133a1e68636",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      },
+      {
+        "createdAt": "2026-03-07T12:25:35.336Z",
+        "id": 122,
+        "workflowId": "Edwfev3WfHY72DP7",
+        "versionId": "d8269783-91b7-44a2-8238-c133a1e68636",
+        "event": "activated",
+        "userId": "bdcb690b-b545-41c5-9a51-e08141268f98"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "case_id": "case-call-2026-03-07-001",
+  "problem_summary": "Meta-to-Shopify acquisition efficiency has deteriorated, with ROAS decline, CAC increase, and conversion leakage on mobile and checkout.",
+  "goal_summary": "Reach ROAS >= 2.5 and CAC < 40 within 90 days while establishing a repeatable creative testing process.",
+  "constraints": [
+    "Small team",
+    "One video editor",
+    "No signed UGC creators yet"
+  ],
+  "key_metrics": {
+    "roas_current": 1.4,
+    "cac_previous": 28,
+    "cac_current": 57,
+    "monthly_ad_spend": 12000,
+    "mobile_traffic_share": 0.72,
+    "checkout_conversion_rate": 0.011,
+    "average_order_value": 38
+  },
+  "timeline_target_date": "2026-05-10",
+  "competitors": [
+    "LumeSkin",
+    "PureBiome"
+  ],
+  "notable_quotes": [
+    "results dropped hard in Q1",
+    "can't keep burning cash like this",
+    "Their ad hooks are stronger and landing pages feel clearer."
+  ]
+}
